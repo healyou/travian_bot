@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": ".venv\\Scripts\\python.exe"
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 3000
 }

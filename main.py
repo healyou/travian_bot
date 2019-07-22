@@ -5,37 +5,25 @@ from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from command.settext import SetTextCommand
+from command.clicklink import ClickLinkCommand
+from element.wait import *
 
 browser = Chrome(executable_path="install/chromedriver.exe")
 browser.get('https://vk.com/')
 
-email = browser.find_element_by_id('index_email')
-email.click()
-email.clear()
-email.send_keys('healyou1994@gmail.com')
+set_login = SetTextCommand(ElementById(browser, 'index_email'), text='healyou1994@gmail.com')
+set_login.execute()
 
-password = browser.find_element_by_id('index_pass')
-password.click()
-password.clear()
-password.send_keys('jhDfY57')
+set_psw = SetTextCommand(ElementById(browser, 'index_pass'), text='test')
+set_psw.execute()
 
-login = browser.find_element_by_id('index_login_button')
-login.click()
+login = ClickLinkCommand(browser.find_element_by_id('index_login_button'))
+login.execute()
 
-# sleep(1)
-
-# wait for element
 try:
-    element = WebDriverWait(browser, 10).until(
-        EC.presence_of_element_located((By.ID, "l_fr"))
-    )
-
-    news = browser.find_element_by_id('l_fr')
-    if (news.is_displayed()):
-        print ('Компонент виден')
-        news.click()
-    else:
-        print ('Компонент не виден')
+    news = ClickLinkCommand(WaitElementById(browser=browser, id='l_fr'))
+    news.execute()
 except:
     print ('Компонент не виден')
 finally:

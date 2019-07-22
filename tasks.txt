@@ -1,5 +1,6 @@
 1) Сделать скрипт, который настроит всё окружение для проекта
     # python3 -m venv .venv
+    # Set-ExecutionPolicy Unrestricted
     # .venv/Scripts/activate
     # pip install selenium
 
