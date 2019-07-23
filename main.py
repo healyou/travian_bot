@@ -1,30 +1,18 @@
 from selenium.webdriver import Chrome
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from time import sleep
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from command.settext import SetTextCommand
-from command.clicklink import ClickLinkCommand
-from element.wait import *
+from command.creator.factory import JsonFactory
+from command.factorycommand import FactoryCommand
+from utils.util import get_absolute_file_path
 
-browser = Chrome(executable_path="install/chromedriver.exe")
+browser = Chrome(executable_path='install/chromedriver.exe')
 browser.get('https://vk.com/')
 
-set_login = SetTextCommand(ElementById(browser, 'index_email'), text='healyou1994@gmail.com')
-set_login.execute()
-
-set_psw = SetTextCommand(ElementById(browser, 'index_pass'), text='test')
-set_psw.execute()
-
-login = ClickLinkCommand(browser.find_element_by_id('index_login_button'))
-login.execute()
+file_path = get_absolute_file_path(__file__, 'files/open_friend.json')
+factory = JsonFactory(browser=browser, file_path=file_path)
 
 try:
-    news = ClickLinkCommand(WaitElementById(browser=browser, id='l_fr'))
-    news.execute()
-except:
-    print ('Компонент не виден')
+    factory_command = FactoryCommand(factory)
+    factory_command.execute()
+except OSError as err:
+    print('Ошибка')
 finally:
-    print('exit')
+    print('Завершение работы')

@@ -1,0 +1,36 @@
+{
+    "commands": [
+        {
+            "web_element": {
+                "type": "id",
+                "value": "index_email" 
+            },
+            "type": "text",
+            "value": "healyou1994@gmail.com"
+        },
+        {
+            "web_element": {
+                "type": "id",
+                "value": "index_pass" 
+            },
+            "type": "text",
+            "value": "TzyMZTvbDwwjQYqapFf5"
+        },
+        {
+            "web_element": {
+                "type": "id",
+                "value": "index_login_button" 
+            },
+            "type": "click",
+            "value": ""
+        },
+        {
+            "web_element": {
+                "type": "wait_id",
+                "value": "l_fr" 
+            },
+            "type": "click",
+            "value": ""
+        }
+    ]
+}
