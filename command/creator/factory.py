@@ -4,6 +4,7 @@ import json
 from command.settext import SetTextCommand
 from command.clicklink import ClickLinkCommand
 from element.wait import *
+from selector.selectors import *
 
 class AbstractFactory(object):
 
@@ -20,7 +21,6 @@ class JsonFactory(AbstractFactory):
         super(JsonFactory, self).__init__(file_path)
         self.browser = browser
 
-    @abstractmethod
     def create_commands(self):
         commands = []
         with open(self.file_path, 'r') as f:
@@ -30,12 +30,16 @@ class JsonFactory(AbstractFactory):
                 web_element = json_command['web_element']
                 value = json_command['value']
 
-                id = web_element['value']
                 web_el_value = web_element['value']
                 if (web_element['type'] == 'id'):
-                    e = ElementById(self.browser, id)
+                    s = IdSelector(self.browser, web_el_value)
+                    e = BaseElement(self.browser, s)
                 elif (web_element['type'] == 'wait_id'):
-                    e = WaitElementById(self.browser, id)
+                    s = WaitByIdSelector(self.browser, web_el_value)
+                    e = BaseElement(self.browser, s)
+                elif (web_element['type'] == 'css'):
+                    s = CssSelector(self.browser, web_el_value)
+                    e = BaseElement(self.browser, s)
 
                 if (json_command['type'] == 'text'):
                     commands.append(SetTextCommand(e, text=value))

@@ -7,12 +7,18 @@ from selenium.webdriver.remote.webelement import WebElement as SeleniumWebElemen
 class WebElement(object):
     WAIT_SECONDS = 10
 
-    def __init__(self, browser):
+    def __init__(self, browser, selector):
         self.browser = browser
+        self.selector = selector
+        self.first_search = True
+        self.element = None
 
     @abstractmethod
     def get_element(self):
-        pass
+        if (self.first_search == True):
+            self.element = self.selector.find_element()
+            self.first_search = False
+        return self.element
     
     @abstractmethod
     def click(self):
@@ -26,10 +32,9 @@ class WebElement(object):
     def send_keys(self, text):
         pass
 
-class ElementById(WebElement):
-    def __init__(self, browser, id):
-        super(ElementById, self).__init__(browser)
-        self.id = id
+class BaseElement(WebElement):
+    def __init__(self, browser, selector):
+        super(BaseElement, self).__init__(browser, selector)
 
     def click(self):
         self.get_element().click()
@@ -39,35 +44,3 @@ class ElementById(WebElement):
 
     def send_keys(self, text):
         self.get_element().send_keys(text)
-
-    def get_element(self):
-        return self.browser.find_element_by_id(self.id)
-
-
-class WaitWebElement(WebElement):
-    def __init__(self, browser):
-        super(WaitWebElement, self).__init__(browser)
-
-    def click(self):
-        self.get_element().click()
-
-    def clear(self):
-        self.get_element().clear()
-
-    def get_element(self):
-        return WebDriverWait(self.browser, self.WAIT_SECONDS).until(
-            self.get_locator()
-        )
-    
-    @abstractmethod
-    def get_locator(self):
-        pass
-
-
-class WaitElementById(WaitWebElement):
-    def __init__(self, browser, id):
-        super(WaitElementById, self).__init__(browser)
-        self.id = id
-
-    def get_locator(self):
-        return EC.presence_of_element_located((By.ID, self.id))

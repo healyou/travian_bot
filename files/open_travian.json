@@ -1,0 +1,28 @@
+{
+    "commands": [
+        {
+            "web_element": {
+                "type": "css",
+                "value": "input[type='text']" 
+            },
+            "type": "text",
+            "value": "healyou1994@gmail.com"
+        },
+        {
+            "web_element": {
+                "type": "css",
+                "value": "input[type='password']" 
+            },
+            "type": "text",
+            "value": "test"
+        },
+        {
+            "web_element": {
+                "type": "css",
+                "value": "button[type='submit']" 
+            },
+            "type": "click",
+            "value": ""
+        }
+    ]
+}
