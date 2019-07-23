@@ -13,7 +13,6 @@ class WebElement(object):
         self.first_search = True
         self.element = None
 
-    @abstractmethod
     def get_element(self):
         if (self.first_search == True):
             self.element = self.selector.find_element()

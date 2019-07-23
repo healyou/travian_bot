@@ -3,7 +3,7 @@ from selenium.webdriver.remote import webelement
 import json
 from command.settext import SetTextCommand
 from command.clicklink import ClickLinkCommand
-from element.wait import *
+from element.elements import *
 from selector.selectors import *
 
 class AbstractFactory(object):
