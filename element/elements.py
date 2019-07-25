@@ -4,7 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from abc import abstractmethod
 from selenium.webdriver.remote.webelement import WebElement as SeleniumWebElement
 
-class WebElement(object):
+class AbstractWebElement(object):
     WAIT_SECONDS = 10
 
     def __init__(self, browser, selector):
@@ -18,28 +18,7 @@ class WebElement(object):
             self.element = self.selector.find_element()
             self.first_search = False
         return self.element
-    
-    @abstractmethod
-    def click(self):
-        pass
 
-    @abstractmethod
-    def clear(self):
-        pass
-
-    @abstractmethod
-    def send_keys(self, text):
-        pass
-
-class BaseElement(WebElement):
+class BaseElement(AbstractWebElement):
     def __init__(self, browser, selector):
         super(BaseElement, self).__init__(browser, selector)
-
-    def click(self):
-        self.get_element().click()
-
-    def clear(self):
-        self.get_element().clear()
-
-    def send_keys(self, text):
-        self.get_element().send_keys(text)
