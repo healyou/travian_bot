@@ -8,5 +8,6 @@ def get_travian_command_files():
     return [
         'files/travian/login.json',
         'files/travian/open_village.json',
-        'files/travian/open_map.json'
+        'files/travian/open_map.json',
+        'files/travian/open_resources.json'
     ]

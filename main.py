@@ -13,6 +13,25 @@ try:
         command = creator.create_command()
         command.execute()
 
+
+    # Информация обо всех полях деревни
+    fields = browser.find_elements_by_css_selector('area[shape=\'circle\']')
+    for field in fields:
+        print (field.get_attribute('alt'))
+
+
+    # Текущее строительство и время до его завершения
+    fields = browser.find_elements_by_css_selector('div[class=\'buildDuration\'] > span')
+    if (len(fields) > 0):
+        for field in fields:
+            print (field.get_attribute('value'))
+    else:
+        # Строим 9 здание
+        # field = browser.find_element_by_css_selector('area[href=\'build.php?id=9\']')
+        # field.click()
+        # field = browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button')
+        # field.click()
+
 except OSError as err:
     print('Ошибка')
 finally:
