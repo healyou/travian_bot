@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import utils.util as util
 from element.elements import BaseElement
 from selector.selectors import *
 from enum import Enum
@@ -23,13 +24,19 @@ class Production(Enum):
     IRON = 'iron'
     CORN = 'corn'
 
+def getBuildProductions():
+    return {
+        Production.WOOD.value, 
+        Production.CLAY.value, 
+        Production.IRON.value
+    }
+
 
 class Village(AbstractVillage):
-    def __init__(self, browser):
+    def __init__(self, browser, name):
         super(Village, self).__init__()
         self.browser = browser
-
-        self.name = 'unknown'
+        self.name = name
         self.warehouse = 0
         self.granary = 0
         self.production = {
@@ -43,21 +50,22 @@ class Village(AbstractVillage):
     def build(self):
         pass
 
-    @abstractmethod
+    def get_next_build_field_type(self):
+        build_prod_types = dict((k,self.production[k]) for k in getBuildProductions() if k in self.production)
+        import operator
+        sorted_types = sorted(build_prod_types.items(), key=operator.itemgetter(1))
+        return sorted_types[0][0]
+
     def analyze(self):
         self.warehouse = self.getStockBarParameter('stockBarWarehouse')
         self.granary = self.getStockBarParameter('stockBarGranary')
         self.production = self.getProductionParameters()
 
-    # todo - сделать рефактор
     def getStockBarParameter(self, componentId):
         selector = IdSelector(self.browser, componentId)
         elem = BaseElement(self.browser, selector)
         web_elem = elem.get_element()
-        text = web_elem.text
-        value = text.encode('ascii', 'ignore').decode('UTF-8').replace(' ', '');
-        int_value = int(value)
-        return int_value
+        return util.convert_str_to_int(web_elem.text)
 
     def getProductionParameters(self):
         production = {
@@ -83,7 +91,7 @@ class Village(AbstractVillage):
             parent = elem.find_element_by_xpath('..')
             num_elem = parent.find_element_by_css_selector('.num')
             text = num_elem.text
-            value = text.encode('ascii', 'ignore').decode('UTF-8').replace(' ', '');
-            production[type] = int(value)
+            production[type] = util.convert_str_to_int(text)
 
+        print (production)
         return production
