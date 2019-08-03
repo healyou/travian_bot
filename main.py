@@ -2,6 +2,7 @@ from selenium.webdriver import Chrome
 from command.creator.factory import *
 from command.commands import FactoryCommand
 from utils.util import *
+from village.villages import *
 
 browser = Chrome(executable_path='install/chromedriver.exe')
 try:
@@ -13,6 +14,8 @@ try:
         command = creator.create_command()
         command.execute()
 
+    # css = '.boxes-contents.cf > table > tbody > tr > .res'
+    # elems = browser.find_elements_by_css_selector(css)
 
     # Информация обо всех полях деревни
     fields = browser.find_elements_by_css_selector('area[shape=\'circle\']')
@@ -31,6 +34,11 @@ try:
         # field.click()
         # field = browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button')
         # field.click()
+        pass
+
+    village = Village(browser)
+    village.analyze()
+    k = 1
 
 except OSError as err:
     print('Ошибка')
