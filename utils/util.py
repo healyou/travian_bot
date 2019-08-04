@@ -10,12 +10,6 @@ def get_absolute_file_path(cur_script_file, rel_file_path):
     return os.path.join(script_dir, rel_file_path)
 
 
-def convert_str_to_int(s):
-    utf = s.encode('ascii', 'ignore').decode('UTF-8')
-    numStr = utf.replace(' ', '')
-    return int(numStr)
-
-
 def get_travian_command_files():
     return [
         'files/travian/login.json',
