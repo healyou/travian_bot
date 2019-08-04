@@ -5,8 +5,9 @@ from enum import Enum
 from utils.util import *
 from utils.context import Context
 from selenium.common.exceptions import NoSuchElementException
-from exceptions.exceptions import *
+from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 import re
+from village.visitors import BuildFieldExceptionVisitor
 
 
 class AbstractVillage(object):
@@ -76,17 +77,8 @@ class Village(AbstractVillage):
             type = self.getNextBuildFieldType()
             self.tryToBuildField(type)
         except BuildFieldException as err:
-            print('Ошибка строительства здания: ' + str(err))
-
-            # TODO - туд должна быть обработка ошибок(посетитель)
-            if (err.getType() == BuildFieldExceptionType.NOT_ENOUGH_FOOD):
-                if (Context.buildCornOnError):
-                    print('Попытка построить ферму')
-                    # self.tryToBuildField(Production.CORN.value)
-            elif (err.getType() == BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE):
-                pass
-            else:
-                print('Неизвестная ошибка строительства здания')
+            # TODO - хорошая ли идея так использовать посетитель и в ошибку передавать много данных?
+            err.accept(BuildFieldExceptionVisitor())
                 
 
     def getFieldNameByBuildingType(self, type):
@@ -119,7 +111,7 @@ class Village(AbstractVillage):
             pass
 
         if ('Недостаток продовольствия: развивайте фермы' in error_message):
-            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD)
+            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD, self)
         else:
             # TODO мб ошибка строительства другая
             try:
@@ -127,7 +119,7 @@ class Village(AbstractVillage):
                 print ('Строительство поля: ' + name)
                 field.click()
             except NoSuchElementException:
-                raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
+                raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE, self)
 
     # Получить элементы всех полей по заданному типу
     def getFieldsForSelectedType(self, type):

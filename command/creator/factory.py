@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from selenium.webdriver.remote import webelement
 import json
-from command.commands import *
+from command.commands import CompositeCommand
 from element.elements import *
 from selector.selectors import *
-from .dictionary import CommandsDictResolver
+from command.creator.dictionary import CommandsDictResolver
 
 
 class AbstractCommandCreator(object):

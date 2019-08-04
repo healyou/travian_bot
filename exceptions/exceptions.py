@@ -8,9 +8,10 @@ class BuildFieldExceptionType(Enum):
 
 # TODO посетитель на обработку различных ошибок строительства
 class BuildFieldException(Exception):
-    def __init__(self, message, type):
+    def __init__(self, message, type, village):
         super(BuildFieldException, self).__init__(message)
         self.type = type
+        self.village = village
 
-    def getType(self):
-        return self.type
+    def accept(self, visitor) -> None:
+        visitor.visit(self)
