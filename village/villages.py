@@ -63,18 +63,18 @@ class Village(AbstractVillage):
 
     # Постройка поля 
     def run(self):
-        # if (self.isFieldBuilding()):
-        self.build()
-        # else:
-            # print ('Идёт строительство здани(я/й)')
-            # print ('Неудачная попытка построить здание')
+        if (self.isFieldBuilding()):
+            self.build()
+        else:
+            print ('Идёт строительство здани(я/й)')
+            print ('Неудачная попытка построить здание')
 
     def build(self):
         try:
             type = self.getNextBuildFieldType()
             self.tryToBuildField(type)
         except MyException as err:
-            # todo - туд должна быть обработка ошибок(посетитель)
+            # TODO - туд должна быть обработка ошибок(посетитель)
             print('Ошибка строительства здания: ' + str(err))
             if (Context.buildCornOnError):
                 print('Попытка построить ферму')
@@ -96,8 +96,8 @@ class Village(AbstractVillage):
         for field in fields:
             name = field.get_attribute('alt')
             if (name_for_search in name):
-                # надо определять поле с наименьшим уровнем для строительства и пытаться строить его
-                # возможны различные ошибки при строительстве здания - их надо централизовано все обрабатывать
+                # TODO надо определять поле с наименьшим уровнем для строительства и пытаться строить его
+                # TODO возможны различные ошибки при строительстве здания - их надо централизовано все обрабатывать
                 print ('Попытка построить здание ' + name)
                 field.click()
 
@@ -111,7 +111,7 @@ class Village(AbstractVillage):
                 if ('Недостаток продовольствия: развивайте фермы' in error_message):
                     raise MyException(error_message)
                 else:
-                    # мб ошибка строительства другая
+                    # TODO мб ошибка строительства другая
                     try:
                         field = self.browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')
                         print ('Строительство поля: ' + name)
@@ -132,7 +132,7 @@ class Village(AbstractVillage):
             return True
 
     def getNextBuildFieldType(self):
-        # todo - почему-то не те поля находит
+        # TODO - почему-то не те поля находит
         build_prod_types = dict((k,self.production[k]) for k in getBuildProductions() if k in self.production)
         import operator
         sorted_types = sorted(build_prod_types.items(), key=operator.itemgetter(1))
