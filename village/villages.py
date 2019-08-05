@@ -8,6 +8,7 @@ from selenium.common.exceptions import NoSuchElementException
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 import re
 from village.visitors import BuildFieldExceptionVisitor
+import operator
 
 
 class AbstractVillage(object):
@@ -41,11 +42,12 @@ class Production(Enum):
     IRON = 'iron'
     CORN = 'corn'
 
-def getBuildProductions():
+def getBuildProductionValues():
     return {
         Production.WOOD.value, 
         Production.CLAY.value, 
-        Production.IRON.value
+        Production.IRON.value,
+        Production.CORN.value
     }
 
 
@@ -62,6 +64,7 @@ class Village(AbstractVillage):
             Production.IRON.value: 0,
             Production.CORN.value: 0
         }
+        self.analyzeProperties()
 
     # Постройка поля 
     def run(self):
@@ -81,7 +84,7 @@ class Village(AbstractVillage):
             err.accept(BuildFieldExceptionVisitor())
                 
 
-    def getFieldNameByBuildingType(self, type):
+    def getFieldNameByBuildingType(self, type: str):
         return {
             Production.WOOD.value: 'Лесопилка Уровень',
             Production.IRON.value: 'Железный рудник Уровень',
@@ -89,7 +92,8 @@ class Village(AbstractVillage):
             Production.CORN.value: 'Ферма Уровень'
         }[type]
 
-    def tryToBuildField(self, type):
+    # TODO - может быть лучше передавать везде enum, а не строку - так будет понятнее
+    def tryToBuildField(self, type: str):
         # Список полей указанного типа
         search_fields = self.getFieldsForSelectedType(type)
         # Определяем поле с наименьшим уровнем для строительства
@@ -157,10 +161,14 @@ class Village(AbstractVillage):
         else:
             return True
 
-    def getNextBuildFieldType(self):
-        # TODO - почему-то не те поля находит
-        build_prod_types = dict((k,self.production[k]) for k in getBuildProductions() if k in self.production)
-        import operator
+    # Получить тип поля с самым маленьким уровнем производства
+    def getNextBuildFieldType(self) -> str:
+        build_prod_types = dict((k,self.production[k]) for k in getBuildProductionValues() if k in self.production)
+
+        # зерно считаем на 50% больше, т.к. его много ненадо
+        corn_prod = build_prod_types[Production.CORN.value]
+        build_prod_types[Production.CORN.value] = int(corn_prod * 1.5)
+
         sorted_types = sorted(build_prod_types.items(), key=operator.itemgetter(1))
         return sorted_types[0][0]
 
