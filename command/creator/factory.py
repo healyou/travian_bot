@@ -9,7 +9,7 @@ from command.creator.dictionary import CommandsDictResolver
 
 class AbstractCommandCreator(object):
     @abstractmethod
-    def create_command(self):
+    def createCommand(self):
         pass
 
 
@@ -18,10 +18,10 @@ class DictionaryCommandCreator(AbstractCommandCreator):
         super(DictionaryCommandCreator, self).__init__()
         self.browser = browser
 
-    def create_command(self):
+    def createCommand(self):
         dict = self.configure_dictionary()
         resolver = CommandsDictResolver(self.browser, dict)
-        commands = resolver.create_item()
+        commands = resolver.createItem()
         return CompositeCommand(commands)
 
     @abstractmethod

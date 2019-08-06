@@ -27,13 +27,13 @@ def open_travian():
 
 def login_to_account(browser):
     creator = JsonCommandCreator(browser, 'files/travian/login.json')
-    command = creator.create_command()
+    command = creator.createCommand()
     command.execute()
 
 
 def open_resources(browser):
     creator = JsonCommandCreator(browser, 'files/travian/open_resources.json')
-    command = creator.create_command()
+    command = creator.createCommand()
     command.execute()
 
 

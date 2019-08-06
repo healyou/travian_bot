@@ -37,7 +37,7 @@ class AbstractDictResolver(object):
         self.dict = dict
 
     @abstractmethod
-    def create_item(self):
+    def createItem(self):
         pass
 
 
@@ -46,7 +46,7 @@ class CommandsDictResolver(AbstractDictResolver):
         super(CommandsDictResolver, self).__init__(dict)
         self.browser = browser
 
-    def create_item(self):
+    def createItem(self):
         commands = []
         for command_dict in self.dict[RootDictElement.COMMANDS.value]:
             value = command_dict[CommandDictElement.VALUE.value]
@@ -54,7 +54,7 @@ class CommandsDictResolver(AbstractDictResolver):
             web_element_dict = command_dict[CommandDictElement.WEB_ELEMENT.value]
             
             web_el_res = DictWebElementResolver(self.browser, web_element_dict)
-            web_element = web_el_res.create_item()
+            web_element = web_el_res.createItem()
 
             command = {
                 CommandType.CLICK.value: ClickLinkCommand(web_element),
@@ -70,7 +70,7 @@ class DictWebElementResolver(AbstractDictResolver):
         super(DictWebElementResolver, self).__init__(dict)
         self.browser = browser
 
-    def create_item(self):
+    def createItem(self):
         value = self.dict[WebElementDict.VALUE.value]
         type = self.dict[WebElementDict.TYPE.value]
 

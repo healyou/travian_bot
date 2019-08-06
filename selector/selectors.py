@@ -10,7 +10,7 @@ class AbstractSelector(object):
         self.browser = browser
 
     @abstractmethod
-    def find_element(self):
+    def findElement(self):
         pass
 
 
@@ -19,7 +19,7 @@ class CssSelector(AbstractSelector):
         super(CssSelector, self).__init__(browser)
         self.value = value
 
-    def find_element(self):
+    def findElement(self):
         return self.browser.find_element_by_css_selector(self.value)
 
 
@@ -28,7 +28,7 @@ class IdSelector(AbstractSelector):
         super(IdSelector, self).__init__(browser)
         self.id = id
 
-    def find_element(self):
+    def findElement(self):
         return self.browser.find_element_by_id(self.id)
 
 
@@ -40,7 +40,7 @@ class WaitByIdSelector(AbstractSelector):
         self.id = id
 
     @abstractmethod
-    def find_element(self):
+    def findElement(self):
         return WebDriverWait(self.browser, self.WAIT_SECONDS).until(
             EC.presence_of_element_located((By.ID, self.id))
         )

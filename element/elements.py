@@ -13,9 +13,9 @@ class AbstractWebElement(object):
         self.first_search = True
         self.element = None
 
-    def get_element(self):
+    def getElement(self):
         if (self.first_search == True):
-            self.element = self.selector.find_element()
+            self.element = self.selector.findElement()
             self.first_search = False
         return self.element
 

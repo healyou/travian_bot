@@ -42,12 +42,12 @@ class Production(Enum):
     IRON = 'iron'
     CORN = 'corn'
 
-def getBuildProductionValues():
+def getBuildProductionTypes():
     return {
-        Production.WOOD.value, 
-        Production.CLAY.value, 
-        Production.IRON.value,
-        Production.CORN.value
+        Production.WOOD, 
+        Production.CLAY, 
+        Production.IRON,
+        Production.CORN
     }
 
 
@@ -59,10 +59,10 @@ class Village(AbstractVillage):
         self.warehouse = 0
         self.granary = 0
         self.production = {
-            Production.WOOD.value: 0,
-            Production.CLAY.value: 0,
-            Production.IRON.value: 0,
-            Production.CORN.value: 0
+            Production.WOOD: 0,
+            Production.CLAY: 0,
+            Production.IRON: 0,
+            Production.CORN: 0
         }
         self.analyzeProperties()
 
@@ -80,20 +80,18 @@ class Village(AbstractVillage):
             type = self.getNextBuildFieldType()
             self.tryToBuildField(type)
         except BuildFieldException as err:
-            # TODO - хорошая ли идея так использовать посетитель и в ошибку передавать много данных?
             err.accept(BuildFieldExceptionVisitor())
                 
 
-    def getFieldNameByBuildingType(self, type: str):
+    def getFieldNameByBuildingType(self, type: Production) -> str:
         return {
-            Production.WOOD.value: 'Лесопилка Уровень',
-            Production.IRON.value: 'Железный рудник Уровень',
-            Production.CLAY.value: 'Глиняный карьер Уровень',
-            Production.CORN.value: 'Ферма Уровень'
+            Production.WOOD: 'Лесопилка Уровень',
+            Production.IRON: 'Железный рудник Уровень',
+            Production.CLAY: 'Глиняный карьер Уровень',
+            Production.CORN: 'Ферма Уровень'
         }[type]
 
-    # TODO - может быть лучше передавать везде enum, а не строку - так будет понятнее
-    def tryToBuildField(self, type: str):
+    def tryToBuildField(self, type: Production):
         # Список полей указанного типа
         search_fields = self.getFieldsForSelectedType(type)
         # Определяем поле с наименьшим уровнем для строительства
@@ -103,8 +101,6 @@ class Village(AbstractVillage):
 
     def buildFieldWithRaiseException(self, field):
         name = field.get_attribute('alt')
-        # TODO надо определять поле с наименьшим уровнем для строительства и пытаться строить его
-        # TODO возможны различные ошибки при строительстве здания - их надо централизовано все обрабатывать
         print ('Попытка построить здание ' + name)
         field.click()
         error_message = ''
@@ -117,7 +113,6 @@ class Village(AbstractVillage):
         if ('Недостаток продовольствия: развивайте фермы' in error_message):
             raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD, self)
         else:
-            # TODO мб ошибка строительства другая
             try:
                 field = self.browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')
                 print ('Строительство поля: ' + name)
@@ -126,7 +121,7 @@ class Village(AbstractVillage):
                 raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE, self)
 
     # Получить элементы всех полей по заданному типу
-    def getFieldsForSelectedType(self, type):
+    def getFieldsForSelectedType(self, type: Production):
         name_for_search = self.getFieldNameByBuildingType(type)
         # Информация обо всех полях деревни
         fields = self.browser.find_elements_by_css_selector('div > map#rx > area[shape=\'circle\']')
@@ -162,12 +157,12 @@ class Village(AbstractVillage):
             return True
 
     # Получить тип поля с самым маленьким уровнем производства
-    def getNextBuildFieldType(self) -> str:
-        build_prod_types = dict((k,self.production[k]) for k in getBuildProductionValues() if k in self.production)
+    def getNextBuildFieldType(self) -> Production:
+        build_prod_types = dict((k,self.production[k]) for k in getBuildProductionTypes() if k in self.production)
 
         # зерно считаем на 50% больше, т.к. его много ненадо
-        corn_prod = build_prod_types[Production.CORN.value]
-        build_prod_types[Production.CORN.value] = int(corn_prod * 1.5)
+        corn_prod = build_prod_types[Production.CORN]
+        build_prod_types[Production.CORN] = int(corn_prod * 1.5)
 
         sorted_types = sorted(build_prod_types.items(), key=operator.itemgetter(1))
         return sorted_types[0][0]
@@ -180,15 +175,15 @@ class Village(AbstractVillage):
     def getStockBarParameter(self, componentId):
         selector = IdSelector(self.browser, componentId)
         elem = BaseElement(self.browser, selector)
-        web_elem = elem.get_element()
+        web_elem = elem.getElement()
         return self.convert_str_to_int(web_elem.text)
 
     def getProductionParameters(self):
         production = {
-            Production.WOOD.value: 0,
-            Production.CLAY.value: 0,
-            Production.IRON.value: 0,
-            Production.CORN.value: 0
+            Production.WOOD: 0,
+            Production.CLAY: 0,
+            Production.IRON: 0,
+            Production.CORN: 0
         }
         css = '.boxes-contents.cf > table > tbody > tr > .res'
         elems = self.browser.find_elements_by_css_selector(css)
@@ -196,13 +191,13 @@ class Village(AbstractVillage):
             text = elem.text
             type = ''
             if ('Древесина' in text):
-                type = Production.WOOD.value
+                type = Production.WOOD
             elif ('Глина' in text):
-                type = Production.CLAY.value
+                type = Production.CLAY
             elif ('Железо' in text):
-                type = Production.IRON.value
+                type = Production.IRON
             elif ('Зерно' in text):
-                type = Production.CORN.value
+                type = Production.CORN
             
             parent = elem.find_element_by_xpath('..')
             num_elem = parent.find_element_by_css_selector('.num')
