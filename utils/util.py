@@ -37,6 +37,12 @@ def open_resources(browser):
     command.execute()
 
 
+def open_village(browser):
+    creator = JsonCommandCreator(browser, 'files/travian/open_village.json')
+    command = creator.createCommand()
+    command.execute()
+
+
 def getVillage(browser):
     css = '#sidebarBoxVillagelist > .sidebarBoxInnerBox > div > ul > .active > a > div.name'
     elem = browser.find_element_by_css_selector(css)

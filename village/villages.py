@@ -64,10 +64,10 @@ class Village(AbstractVillage):
             Production.IRON: 0,
             Production.CORN: 0
         }
-        self.analyzeProperties()
 
     # Постройка поля 
     def run(self):
+        self.analyzeProperties()
         self.build()
         # if (self.isFieldBuilding()):
         #     self.build()
