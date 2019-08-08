@@ -18,6 +18,6 @@ class Production(Enum):
     CORN = 'corn'
 
 
-class IndoorBuilding(Enum):
+class IndoorBuildingType(Enum):
     # амбар
     Stock = 'stock'

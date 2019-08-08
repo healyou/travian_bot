@@ -4,7 +4,7 @@ from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 from selenium.common.exceptions import NoSuchElementException
 import re
 from utils.context import Context
-from village.types import Production, IndoorBuilding
+from village.types import Production, IndoorBuildingType
 
 
 class AbstractBuilding(object):
@@ -89,12 +89,52 @@ class ProductionBuilding(AbstractBuilding):
         }[type]
 
 
-# Ресурсное поле
+# Здание внутри деревни
 class IndoorBuilding(AbstractBuilding):
-    def __init__(self, type: IndoorBuilding):
-        super(ProductionBuilding, self).__init__()
+    def __init__(self, type: IndoorBuildingType):
+        super(IndoorBuilding, self).__init__()
         self._type = type
         self._browser = Context.browser
 
     def build(self):
-        pass
+        # TODO - новое здание и старое обрабатываются по разному
+        # TODO - доделать строительство здания и обработку ошибок
+        browser = self._browser
+        # надо найти все элементы, потом делать по ним hover и определять, что построено на данном месте
+        elems = browser.find_elements_by_css_selector('div#village_map > div.buildingSlot')
+        k = 1
+        from selenium.webdriver.common.action_chains import ActionChains
+        for elem in elems:
+            element_to_hover_over = elem
+            hover = ActionChains(browser).move_to_element(element_to_hover_over)
+            hover.perform()
+            # здесь текст основных зданий
+            hover_elem_tytle = browser.find_element_by_css_selector('div.tip > div.tip-container > div.tip-contents > div.title.elementTitle')
+            # здесь будет текст стройплощадки-пустое место для строительства
+            hover_elem_text = browser.find_element_by_css_selector('div.tip > div.tip-container > div.tip-contents > div.text.elementText')
+            # print ('title=' + hover_elem_tytle.text + ' text=' + hover_elem_text.text)
+
+            if ('123Стройплощадка' in hover_elem_text.text):
+                # по остальным нельзя клинуть - св-во pointer-events: None - только для стройплощадки
+                click_item = element_to_hover_over.find_element_by_css_selector('.hoverShapeWinter')
+                click_item.click()
+                break
+
+            # Получаем текст первого уровня
+            all_text = hover_elem_tytle.text
+            child_elems = hover_elem_tytle.find_elements_by_xpath("./*")
+            parent_text = all_text
+            for child in child_elems:
+                parent_text = parent_text.replace(child.text, '')
+            print ('one_level_text=' + parent_text)
+            if ('Главное здание' in parent_text):
+                # у построенных зданий можно кликать по самому элементу или по уровню
+                click_item = element_to_hover_over.find_element_by_css_selector('.level')
+                click_item.click()
+                # element_to_hover_over.click()
+                break
+
+            # first_lvl_title = hover_elem_tytle.find_elements_by_xpath("./*")
+            # for ggwp in first_lvl_title:
+            #     print ('flvltitle=' + ggwp.text)
+        # village.run()

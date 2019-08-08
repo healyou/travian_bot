@@ -3,8 +3,8 @@ from element.elements import BaseElement
 from selector.selectors import IdSelector
 from utils.context import Context
 import operator
-from village.building.buildings import ProductionBuilding
-from .types import Production, getBuildProductionTypes
+from .building.buildings import ProductionBuilding, IndoorBuilding
+from .types import Production, IndoorBuildingType, getBuildProductionTypes
 
 
 class AbstractVillage(object):
@@ -29,6 +29,10 @@ class AbstractVillage(object):
 
     @abstractmethod
     def build(self, name_for_search):
+        pass
+
+    @abstractmethod
+    def buildStock(self):
         pass
 
 
@@ -60,6 +64,10 @@ class Village(AbstractVillage):
         type = self.getNextBuildFieldType()
         building = ProductionBuilding(type)
         building.build()
+
+    def buildStock(self):
+        stock = IndoorBuilding(IndoorBuildingType.Stock)
+        stock.build()
 
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):
