@@ -1,16 +1,10 @@
-from utils.util import *
+from utils.util import open_travian, open_village, getVillage, login_to_account
 from utils.context import Context
-from village.villages import *
+from village.villages import Village
 import time
 
 
-browser = open_travian()
-Context.browser = browser
-try:
-    login_to_account(browser)
-    village: Village = getVillage(browser)
-    open_village(browser)
-
+def test(browser):
     # надо найти все элементы, потом делать по ним hover и определять, что построено на данном месте
     elems = browser.find_elements_by_css_selector('div#village_map > div.buildingSlot')
     k = 1
@@ -48,9 +42,16 @@ try:
         # first_lvl_title = hover_elem_tytle.find_elements_by_xpath("./*")
         # for ggwp in first_lvl_title:
         #     print ('flvltitle=' + ggwp.text)
-    
-
     # village.run()
+
+
+browser = open_travian()
+Context.browser = browser
+try:
+    login_to_account(browser)
+    village: Village = getVillage(browser)
+    # open_village(browser)
+    village.run()
 
 except OSError as err:
     print('Ошибка работы скрипта')

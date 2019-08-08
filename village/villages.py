@@ -1,14 +1,10 @@
 from abc import abstractmethod
 from element.elements import BaseElement
-from selector.selectors import *
-from enum import Enum
-from utils.util import *
+from selector.selectors import IdSelector
 from utils.context import Context
-from selenium.common.exceptions import NoSuchElementException
-from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
-import re
-from village.visitors import BuildFieldExceptionVisitor
 import operator
+from village.building.buildings import ProductionBuilding
+from .types import Production, getBuildProductionTypes
 
 
 class AbstractVillage(object):
@@ -36,21 +32,6 @@ class AbstractVillage(object):
         pass
 
 
-class Production(Enum):
-    WOOD = 'wood'
-    CLAY = 'clay'
-    IRON = 'iron'
-    CORN = 'corn'
-
-def getBuildProductionTypes():
-    return {
-        Production.WOOD, 
-        Production.CLAY, 
-        Production.IRON,
-        Production.CORN
-    }
-
-
 class Village(AbstractVillage):
     def __init__(self, browser, name):
         super(Village, self).__init__()
@@ -76,74 +57,9 @@ class Village(AbstractVillage):
         #     print ('Неудачная попытка построить здание')
 
     def build(self):
-        try:
-            type = self.getNextBuildFieldType()
-            self.tryToBuildField(type)
-        except BuildFieldException as err:
-            err.accept(BuildFieldExceptionVisitor())
-                
-
-    def getFieldNameByBuildingType(self, type: Production) -> str:
-        return {
-            Production.WOOD: 'Лесопилка Уровень',
-            Production.IRON: 'Железный рудник Уровень',
-            Production.CLAY: 'Глиняный карьер Уровень',
-            Production.CORN: 'Ферма Уровень'
-        }[type]
-
-    def tryToBuildField(self, type: Production):
-        # Список полей указанного типа
-        search_fields = self.getFieldsForSelectedType(type)
-        # Определяем поле с наименьшим уровнем для строительства
-        field = self.getFieldWithSmallLevel(search_fields)
-        # Собственно строим здание
-        self.buildFieldWithRaiseException(field)
-
-    def buildFieldWithRaiseException(self, field):
-        name = field.get_attribute('alt')
-        print ('Попытка построить здание ' + name)
-        field.click()
-        error_message = ''
-        try:
-            field = self.browser.find_element_by_css_selector('div.errorMessage > span')
-            error_message = field.text
-        except NoSuchElementException:
-            pass
-
-        if ('Недостаток продовольствия: развивайте фермы' in error_message):
-            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD, self)
-        else:
-            try:
-                field = self.browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')
-                print ('Строительство поля: ' + name)
-                field.click()
-            except NoSuchElementException:
-                raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE, self)
-
-    # Получить элементы всех полей по заданному типу
-    def getFieldsForSelectedType(self, type: Production):
-        name_for_search = self.getFieldNameByBuildingType(type)
-        # Информация обо всех полях деревни
-        fields = self.browser.find_elements_by_css_selector('div > map#rx > area[shape=\'circle\']')
-        search_fields = []
-        for field in fields:
-            name = field.get_attribute('alt')
-            if (name_for_search in name):
-                search_fields.append(field)
-        return search_fields
-
-    # TODO сделать приватные переменные и протектные в питоне
-    # Получить поле с самым маленьким уровнем
-    def getFieldWithSmallLevel(self, search_fields):
-        min_lvl_field = None
-        min_lvl = None
-        for field in search_fields:
-            name = field.get_attribute('alt')
-            lvl = int(re.findall("\d+", name)[0])
-            if (min_lvl is None or min_lvl > lvl):
-                min_lvl = lvl
-                min_lvl_field = field
-        return min_lvl_field
+        type = self.getNextBuildFieldType()
+        building = ProductionBuilding(type)
+        building.build()
 
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):

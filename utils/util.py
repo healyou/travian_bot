@@ -1,6 +1,6 @@
 import os
 from selenium.webdriver import Chrome
-from command.creator.factory import *
+from command.creator.factory import JsonCommandCreator
 from command.commands import FactoryCommand
 from village.villages import Village
 
