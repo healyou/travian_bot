@@ -23,3 +23,7 @@ class IndoorBuildingType(Enum):
     Stock = 'stock'
     # Амбар
     GRANARY = 'granary'
+    # Резиденция
+    RESIDENCE = 'residence'
+    # Изгородь
+    HEDGE = 'hedge'

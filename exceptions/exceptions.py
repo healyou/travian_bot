@@ -4,6 +4,7 @@ from enum import Enum
 class BuildFieldExceptionType(Enum):
     NOT_ENOUGH_FOOD = 'not_enough_food'
     BUILD_BUTTON_UNAVAILABLE = 'build_button_unavailable'
+    NOT_ENOUGH_PLACE = 'not_enough_place'
 
 
 class BuildFieldException(Exception):

@@ -73,6 +73,10 @@ class Village(AbstractVillage):
         stock = IndoorBuilding(IndoorBuildingType.GRANARY)
         stock.build()
 
+    def buildHedge(self):
+        stock = IndoorBuilding(IndoorBuildingType.HEDGE)
+        stock.build()
+
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):
         # Текущее строительство и время до его завершения

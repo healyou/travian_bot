@@ -5,9 +5,10 @@ from selenium.common.exceptions import NoSuchElementException
 import re
 from utils.context import Context
 from village.types import Production, IndoorBuildingType
+from selenium.webdriver.common.action_chains import ActionChains
 
 
-# TODO - это надо вынести в отдельный метод
+# TODO - это надо вынести в отдельный метод для строительства не нового здания
 def buildFieldWithRaiseException(browser, name: str):
     print ('Попытка построить ' + name)
     error_message = ''
@@ -106,16 +107,24 @@ class IndoorBuilding(AbstractBuilding):
         except BuildFieldException as err:
             err.accept(BuildFieldExceptionVisitor())
     
+    # TODO - рефактор
     def __tryToBuildField(self):
         # TODO - новое здание и старое обрабатываются по разному
         # TODO - доделать строительство здания и обработку ошибок
         browser = self._browser
         # надо найти все элементы, потом делать по ним hover и определять, что построено на данном месте
+
+        # TODO - находит блоки, на которые не нажать - надо искать с уровнем и на него кликать
         elems = browser.find_elements_by_css_selector('div#village_map > div.buildingSlot')
         k = 1
-        from selenium.webdriver.common.action_chains import ActionChains
+
+        build_clicked_field = None
+        name = None
+        first_empty_clicked_field = None
         for elem in elems:
             element_to_hover_over = elem
+            print (element_to_hover_over.get_attribute('innerHTML'))
+            print ('')
             hover = ActionChains(browser).move_to_element(element_to_hover_over)
             hover.perform()
             # здесь текст основных зданий
@@ -124,11 +133,12 @@ class IndoorBuilding(AbstractBuilding):
             hover_elem_text = browser.find_element_by_css_selector('div.tip > div.tip-container > div.tip-contents > div.text.elementText')
             # print ('title=' + hover_elem_tytle.text + ' text=' + hover_elem_text.text)
 
-            if ('123Стройплощадка' in hover_elem_text.text):
+            if ('Стройплощадка' in hover_elem_text.text and first_empty_clicked_field is None):
                 # по остальным нельзя клинуть - св-во pointer-events: None - только для стройплощадки
                 click_item = element_to_hover_over.find_element_by_css_selector('.hoverShapeWinter')
-                click_item.click()
-                break
+                first_empty_clicked_field = click_item
+                print ('Найдено пустое поле для строительства')
+                continue
 
             # Получаем текст первого уровня
             all_text = hover_elem_tytle.text
@@ -141,19 +151,44 @@ class IndoorBuilding(AbstractBuilding):
             if (self._type == IndoorBuildingType.Stock):
                 if ('Склад' in parent_text):
                     click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                    click_item.click()
-                    buildFieldWithRaiseException(self._browser, 'Склад')
-                    print ('Строим склад')
+                    build_clicked_field = click_item
+                    name = 'Склад'
                     break
             elif (self._type == IndoorBuildingType.GRANARY):
                 if ('Амбар' in parent_text):
                     click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                    click_item.click()
-                    buildFieldWithRaiseException(self._browser, 'Амбар')
-                    print ('Строим склад')
+                    build_clicked_field = click_item
+                    name = 'Амбар'
                     break
+            elif (self._type == IndoorBuildingType.HEDGE):
+                if ('Изгородь' in parent_text):
+                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
+                    build_clicked_field = click_item
+                    name = 'Изгородь'
+                    break
+            # TODO - другие здания для постройки
 
-            # first_lvl_title = hover_elem_tytle.find_elements_by_xpath("./*")
-            # for ggwp in first_lvl_title:
-            #     print ('flvltitle=' + ggwp.text)
-        # village.run()
+        if (build_clicked_field is not None):
+            print ('Строим ' + name)
+            build_clicked_field.click()
+            buildFieldWithRaiseException(self._browser, name)
+        else:
+            print ('Надо строить новое здание')
+            if (first_empty_clicked_field is None):
+                raise BuildFieldException('Нет места для строительства здания', BuildFieldExceptionType.NOT_ENOUGH_PLACE)
+            else:
+                # TODO - надо выбирать здание из 3 типов - пром, военные и инфраструктура
+                first_empty_clicked_field.click()
+
+                military = self._browser.find_element_by_xpath('//a[contains(text(), \'Военные\') and @class=\'tabItem\']')
+                military.click()
+
+                # TODO - тут можно строить и другие типы зданий
+                if (self._type == IndoorBuildingType.HEDGE):
+                    try:
+                        hedge = self._browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'Изгородь\']]')
+                        build_hedge = hedge.find_element_by_css_selector('button.green.new')
+                        print ('Строим изгородь')
+                        build_hedge.click()
+                    except NoSuchElementException as err:
+                        raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
