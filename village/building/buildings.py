@@ -7,6 +7,27 @@ from utils.context import Context
 from village.types import Production, IndoorBuildingType
 
 
+# TODO - это надо вынести в отдельный метод
+def buildFieldWithRaiseException(browser, name: str):
+    print ('Попытка построить ' + name)
+    error_message = ''
+    try:
+        field = browser.find_element_by_css_selector('div.errorMessage > span')
+        error_message = field.text
+    except NoSuchElementException:
+        pass
+
+    if ('Недостаток продовольствия: развивайте фермы' in error_message):
+        raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD)
+    else:
+        try:
+            field = browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')
+            print ('Строительство: ' + name)
+            # field.click()
+        except NoSuchElementException:
+            raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
+
+
 class AbstractBuilding(object):
     @abstractmethod
     def build(self):
@@ -61,24 +82,7 @@ class ProductionBuilding(AbstractBuilding):
 
     def __buildFieldWithRaiseException(self, field):
         name = field.get_attribute('alt')
-        print ('Попытка построить здание ' + name)
-        field.click()
-        error_message = ''
-        try:
-            field = self._browser.find_element_by_css_selector('div.errorMessage > span')
-            error_message = field.text
-        except NoSuchElementException:
-            pass
-
-        if ('Недостаток продовольствия: развивайте фермы' in error_message):
-            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD, self)
-        else:
-            try:
-                field = self._browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')
-                print ('Строительство поля: ' + name)
-                field.click()
-            except NoSuchElementException:
-                raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE, self)
+        buildFieldWithRaiseException(self._browser, name)
 
     def __getFieldNameByBuildingType(self, type: Production) -> str:
         return {
@@ -97,6 +101,12 @@ class IndoorBuilding(AbstractBuilding):
         self._browser = Context.browser
 
     def build(self):
+        try:
+            self.__tryToBuildField()
+        except BuildFieldException as err:
+            err.accept(BuildFieldExceptionVisitor())
+    
+    def __tryToBuildField(self):
         # TODO - новое здание и старое обрабатываются по разному
         # TODO - доделать строительство здания и обработку ошибок
         browser = self._browser
@@ -127,12 +137,21 @@ class IndoorBuilding(AbstractBuilding):
             for child in child_elems:
                 parent_text = parent_text.replace(child.text, '')
             print ('one_level_text=' + parent_text)
-            if ('Главное здание' in parent_text):
-                # у построенных зданий можно кликать по самому элементу или по уровню
-                click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                click_item.click()
-                # element_to_hover_over.click()
-                break
+
+            if (self._type == IndoorBuildingType.Stock):
+                if ('Склад' in parent_text):
+                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
+                    click_item.click()
+                    buildFieldWithRaiseException(self._browser, 'Склад')
+                    print ('Строим склад')
+                    break
+            elif (self._type == IndoorBuildingType.GRANARY):
+                if ('Амбар' in parent_text):
+                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
+                    click_item.click()
+                    buildFieldWithRaiseException(self._browser, 'Амбар')
+                    print ('Строим склад')
+                    break
 
             # first_lvl_title = hover_elem_tytle.find_elements_by_xpath("./*")
             # for ggwp in first_lvl_title:

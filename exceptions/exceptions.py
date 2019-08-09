@@ -7,10 +7,9 @@ class BuildFieldExceptionType(Enum):
 
 
 class BuildFieldException(Exception):
-    def __init__(self, message, type, village):
+    def __init__(self, message, type):
         super(BuildFieldException, self).__init__(message)
         self.type = type
-        self.village = village
 
     def accept(self, visitor) -> None:
         visitor.visit(self)

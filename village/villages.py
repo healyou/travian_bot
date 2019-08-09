@@ -69,6 +69,10 @@ class Village(AbstractVillage):
         stock = IndoorBuilding(IndoorBuildingType.Stock)
         stock.build()
 
+    def buildGranary(self):
+        stock = IndoorBuilding(IndoorBuildingType.GRANARY)
+        stock.build()
+
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):
         # Текущее строительство и время до его завершения

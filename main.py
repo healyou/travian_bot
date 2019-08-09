@@ -10,7 +10,7 @@ try:
     login_to_account(browser)
     village: Village = getVillage(browser)
     open_village(browser)
-    village.buildStock()
+    village.buildGranary()
 
 except OSError as err:
     print('Ошибка работы скрипта')
@@ -20,7 +20,7 @@ finally:
     browser.quit()
 
 # делать далее
-# TODO 1)Постройка амбара и склада с нуля и на готовом
+# TODO 1)Постройка амбара и склада с нуля
 # TODO 2)Определение, когда необходимо строить склад и амбар и их постройка
 # TODO 3)Цикл строительства полей
 # TODO 4)Строительство полей и складов с амбарами вместе

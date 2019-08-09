@@ -19,5 +19,7 @@ class Production(Enum):
 
 
 class IndoorBuildingType(Enum):
-    # амбар
+    # Склад
     Stock = 'stock'
+    # Амбар
+    GRANARY = 'granary'
