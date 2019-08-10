@@ -9,8 +9,8 @@ Context.browser = browser
 try:
     login_to_account(browser)
     village: Village = getVillage(browser)
-    open_village(browser)
-    village.buildHedge()
+    # open_village(browser)
+    village.run()
 
 except OSError as err:
     print('Ошибка работы скрипта')

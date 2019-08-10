@@ -6,6 +6,11 @@ import re
 from utils.context import Context
 from village.types import Production, IndoorBuildingType
 from selenium.webdriver.common.action_chains import ActionChains
+import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from command.commands import AbstractCommand, LamdbaCommand
 
 
 # TODO - это надо вынести в отдельный метод для строительства не нового здания
@@ -109,24 +114,23 @@ class IndoorBuilding(AbstractBuilding):
     
     # TODO - рефактор
     def __tryToBuildField(self):
-        # TODO - новое здание и старое обрабатываются по разному
-        # TODO - доделать строительство здания и обработку ошибок
         browser = self._browser
         # надо найти все элементы, потом делать по ним hover и определять, что построено на данном месте
 
-        # TODO - находит блоки, на которые не нажать - надо искать с уровнем и на него кликать
-        elems = browser.find_elements_by_css_selector('div#village_map > div.buildingSlot')
-        k = 1
+        village_map = browser.find_element_by_css_selector('div#village_map')
+        elems = village_map.find_elements_by_xpath('//div[contains(@class, \'buildingSlot\') and .//div[contains(@class, \'level\')]]')
 
-        build_clicked_field = None
+        build_command: AbstractCommand = None
         name = None
         first_empty_clicked_field = None
         for elem in elems:
-            element_to_hover_over = elem
-            print (element_to_hover_over.get_attribute('innerHTML'))
-            print ('')
-            hover = ActionChains(browser).move_to_element(element_to_hover_over)
+            # hover по иконке с уровнем здания
+            level_item_to_hover = elem.find_element_by_css_selector('.level')
+            hover = ActionChains(browser).move_to_element(level_item_to_hover)
             hover.perform()
+
+            build_container = elem
+            
             # здесь текст основных зданий
             hover_elem_tytle = browser.find_element_by_css_selector('div.tip > div.tip-container > div.tip-contents > div.title.elementTitle')
             # здесь будет текст стройплощадки-пустое место для строительства
@@ -135,7 +139,7 @@ class IndoorBuilding(AbstractBuilding):
 
             if ('Стройплощадка' in hover_elem_text.text and first_empty_clicked_field is None):
                 # по остальным нельзя клинуть - св-во pointer-events: None - только для стройплощадки
-                click_item = element_to_hover_over.find_element_by_css_selector('.hoverShapeWinter')
+                click_item = build_container.find_element_by_css_selector('.hoverShapeWinter')
                 first_empty_clicked_field = click_item
                 print ('Найдено пустое поле для строительства')
                 continue
@@ -148,29 +152,40 @@ class IndoorBuilding(AbstractBuilding):
                 parent_text = parent_text.replace(child.text, '')
             print ('one_level_text=' + parent_text)
 
+            # TODO Наводим на далеко расположенный item - почему-то без этого не всегда срабатывает hover элемента
+            hover_item = browser.find_element_by_css_selector('button#heroImageButton')
+            hover = ActionChains(browser).move_to_element(hover_item)
+            hover.perform()
+
             if (self._type == IndoorBuildingType.Stock):
                 if ('Склад' in parent_text):
-                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                    build_clicked_field = click_item
+                    def build_click():
+                        build_clicked_field = level_item_to_hover
+                        build_clicked_field.click()
+                    build_command = LamdbaCommand(build_click)
                     name = 'Склад'
                     break
             elif (self._type == IndoorBuildingType.GRANARY):
                 if ('Амбар' in parent_text):
-                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                    build_clicked_field = click_item
+                    def build_click():
+                        build_clicked_field = level_item_to_hover
+                        build_clicked_field.click()
+                    build_command = LamdbaCommand(build_click)
                     name = 'Амбар'
                     break
             elif (self._type == IndoorBuildingType.HEDGE):
                 if ('Изгородь' in parent_text):
-                    click_item = element_to_hover_over.find_element_by_css_selector('.level')
-                    build_clicked_field = click_item
+                    def build_click():
+                        hover = ActionChains(browser).move_to_element(level_item_to_hover).click()
+                        hover.perform()
+                    build_command = LamdbaCommand(build_click)
                     name = 'Изгородь'
                     break
             # TODO - другие здания для постройки
 
-        if (build_clicked_field is not None):
+        if (build_command is not None):
             print ('Строим ' + name)
-            build_clicked_field.click()
+            build_command.execute()
             buildFieldWithRaiseException(self._browser, name)
         else:
             print ('Надо строить новое здание')

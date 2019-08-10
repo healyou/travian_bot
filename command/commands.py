@@ -10,6 +10,15 @@ class AbstractCommand(object):
         pass
 
 
+class LamdbaCommand(AbstractCommand):
+    def __init__(self, func):
+        super(LamdbaCommand, self).__init__()
+        self._func = func
+
+    def execute(self):
+        self._func()
+
+
 class CompositeCommand(AbstractCommand):
 
     def __init__(self, commands):
