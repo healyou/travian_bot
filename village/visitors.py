@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 from utils.context import Context
-# TODO - почему python не может import циклический разрулить?
 
 
 class BuildFieldExceptionVisitor(object):

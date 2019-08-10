@@ -12,9 +12,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from command.commands import AbstractCommand, LamdbaCommand
 
-
+# По полю уже кликнули и теперь надо только нажать построить
 # TODO - это надо вынести в отдельный метод для строительства не нового здания
-def buildFieldWithRaiseException(browser, name: str):
+def buildExitingFieldWithRaiseException(browser, name: str):
     print ('Попытка построить ' + name)
     error_message = ''
     try:
@@ -88,7 +88,8 @@ class ProductionBuilding(AbstractBuilding):
 
     def __buildFieldWithRaiseException(self, field):
         name = field.get_attribute('alt')
-        buildFieldWithRaiseException(self._browser, name)
+        field.click()
+        buildExitingFieldWithRaiseException(self._browser, name)
 
     def __getFieldNameByBuildingType(self, type: Production) -> str:
         return {
@@ -111,11 +112,10 @@ class IndoorBuilding(AbstractBuilding):
             self.__tryToBuildField()
         except BuildFieldException as err:
             err.accept(BuildFieldExceptionVisitor())
-    
-    # TODO - рефактор
+
+    # Выбираем элементы, делаем hover и определяем что здание - затем строим нужное
     def __tryToBuildField(self):
         browser = self._browser
-        # надо найти все элементы, потом делать по ним hover и определять, что построено на данном месте
 
         village_map = browser.find_element_by_css_selector('div#village_map')
         elems = village_map.find_elements_by_xpath('//div[contains(@class, \'buildingSlot\') and .//div[contains(@class, \'level\')]]')
@@ -181,24 +181,26 @@ class IndoorBuilding(AbstractBuilding):
                     build_command = LamdbaCommand(build_click)
                     name = 'Изгородь'
                     break
-            # TODO - другие здания для постройки
+            # TODO - другие здания для постройки - Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
 
         if (build_command is not None):
             print ('Строим ' + name)
             build_command.execute()
-            buildFieldWithRaiseException(self._browser, name)
+            buildExitingFieldWithRaiseException(self._browser, name)
         else:
             print ('Надо строить новое здание')
             if (first_empty_clicked_field is None):
                 raise BuildFieldException('Нет места для строительства здания', BuildFieldExceptionType.NOT_ENOUGH_PLACE)
             else:
                 # TODO - надо выбирать здание из 3 типов - пром, военные и инфраструктура
+                # Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
                 first_empty_clicked_field.click()
 
                 military = self._browser.find_element_by_xpath('//a[contains(text(), \'Военные\') and @class=\'tabItem\']')
                 military.click()
 
-                # TODO - тут можно строить и другие типы зданий
+                # TODO - тут можно строить и другие типы зданий - Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
+                # TODO - часть инфы (имя поля для поиска) - можно вынести в enum
                 if (self._type == IndoorBuildingType.HEDGE):
                     try:
                         hedge = self._browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'Изгородь\']]')
