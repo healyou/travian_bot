@@ -16,15 +16,32 @@ from command.commands import AbstractCommand, LamdbaCommand
 # TODO - это надо вынести в отдельный метод для строительства не нового здания
 def buildExitingFieldWithRaiseException(browser, name: str):
     print ('Попытка построить ' + name)
-    error_message = ''
+    error_message = None
+
+    # Ошибки строительства
     try:
         field = browser.find_element_by_css_selector('div.errorMessage > span')
         error_message = field.text
     except NoSuchElementException:
+        # Если элемента нет - ошибок строительства нет
         pass
 
-    if ('Недостаток продовольствия: развивайте фермы' in error_message):
-        raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD)
+    # Ошибка апргейда здания
+    if (error_message is None):
+        try:
+            field = browser.find_element_by_css_selector('div.upgradeBlocked > div.errorMessage')
+            error_message = field.text
+        except NoSuchElementException:
+            pass
+
+    # Обработка ошибок
+    if (error_message is not None):
+        if ('Недостаток продовольствия: развивайте фермы' in error_message):
+            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD)
+        elif ('Недостаточна вместимость' in error_message):
+            raise BuildFieldException(error_message, BuildFieldExceptionType.INSUFFICIENT_CAPACITY)
+        elif (not error_message):
+            raise BuildFieldException(error_message, BuildFieldExceptionType.UNKNOWN_ERROR)
     else:
         try:
             field = browser.find_element_by_css_selector('.upgradeButtonsContainer > .section1 > button.green.build')

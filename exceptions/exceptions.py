@@ -5,6 +5,8 @@ class BuildFieldExceptionType(Enum):
     NOT_ENOUGH_FOOD = 'not_enough_food'
     BUILD_BUTTON_UNAVAILABLE = 'build_button_unavailable'
     NOT_ENOUGH_PLACE = 'not_enough_place'
+    INSUFFICIENT_CAPACITY = 'insufficient_capacity'
+    UNKNOWN_ERROR = 'unknown_error'
 
 
 class BuildFieldException(Exception):

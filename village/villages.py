@@ -62,6 +62,7 @@ class Village(AbstractVillage):
 
     def build(self):
         type = self.getNextBuildFieldType()
+        type = Production.CLAY
         building = ProductionBuilding(type)
         building.build()
 
