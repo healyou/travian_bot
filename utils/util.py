@@ -3,6 +3,15 @@ from selenium.webdriver import Chrome
 from command.creator.factory import JsonCommandCreator
 from command.commands import FactoryCommand
 from village.villages import Village
+import re
+
+
+# Получает из строки с ascii символами число
+def convert_str_with_one_number_to_int(self, s):
+    utf = s.encode('ascii', 'ignore').decode('UTF-8')
+    str = utf.replace(' ', '')
+    numStr = re.findall('\d+', str)[0]
+    return int(numStr)
 
 
 def get_absolute_file_path(cur_script_file, rel_file_path):

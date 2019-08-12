@@ -5,6 +5,15 @@ from utils.context import Context
 import operator
 from .building.buildings import ProductionBuilding, IndoorBuilding
 from .types import Production, IndoorBuildingType, getBuildProductionTypes
+from command.commands import AbstractCommand
+
+
+class CreateFieldCommand(AbstractCommand):
+    def __init__(self, type):
+        super(CreateFieldCommand, self).__init__()
+    
+    def execute(self):
+        pass
 
 
 class AbstractVillage(object):

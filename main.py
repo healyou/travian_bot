@@ -2,14 +2,20 @@ from utils.util import open_travian, open_village, getVillage, login_to_account
 from utils.context import Context
 from village.villages import Village
 import time
+from village.command.commands import *
 
 
 browser = open_travian()
 Context.browser = browser
 try:
     login_to_account(browser)
-    village: Village = getVillage(browser)
-    village.run()
+
+    OpenVillageCommand(51, 91).execute()
+    OpenVillageBuildingsCommand().execute()
+    OpenVillageResourcesCommand().execute()
+
+    # village: Village = getVillage(browser)
+    # village.run()
 
 except OSError as err:
     print('Ошибка работы скрипта')
