@@ -3,6 +3,12 @@ from command.creator.factory import JsonCommandCreator
 from utils.context import Context
 from utils.util import convert_str_with_one_number_to_int as toInt
 import re
+from element.elements import BaseElement
+from selector.selectors import ProductionFieldSelector
+from village.types import Production
+from village.building.buildings import buildExitingFieldWithRaiseException
+from village.visitors import BuildFieldExceptionVisitor
+from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 
 
 # Открывает ресурсные поля в выбранной деревне
@@ -51,6 +57,42 @@ class OpenVillageCommand(AbstractCommand):
                 vil_link.click()
                 return
         raise Exception('Не найдена деревня')
+
+
+# Строит ресурсное поле
+class BuildProductionFieldCommand(AbstractCommand): 
+    def __init__(self, type: Production, lvl: int, vilX: int, vilY: int): 
+        super(BuildProductionFieldCommand, self).__init__() 
+        self.__type: Production = type 
+        self.__lvl: int = lvl
+        self.__browser = Context.browser
+        self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY)
+        self.__open_resources_command: AbstractCommand = OpenVillageResourcesCommand()
+
+    def execute(self):
+        # TODO - надо ли ждать загрузки страницы?
+        self.__open_vil_command.execute()
+        self.__open_resources_command.execute()
+        self.__buildField()
+
+    def __buildField(self):
+        try:
+            # Находим нужное поле
+            field = self.__getField()
+            name = field.get_attribute('alt')
+            # Открываем окно строительства поля
+            field.click()
+            # Строим в окне строительства
+            buildExitingFieldWithRaiseException(self.__browser, name)
+        except BuildFieldException as err:
+            err.accept(BuildFieldExceptionVisitor())
+
+    def __getField(self):
+        browser = Context.browser
+        selector = ProductionFieldSelector(browser, self.__type, self.__lvl)
+        elem = BaseElement(browser, selector)
+        return elem.getElement()
+
 
 # TODO - что надо реализовать по постройке полей
 # общий план таков: 

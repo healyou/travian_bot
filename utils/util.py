@@ -7,7 +7,7 @@ import re
 
 
 # Получает из строки с ascii символами число
-def convert_str_with_one_number_to_int(self, s):
+def convert_str_with_one_number_to_int(s):
     utf = s.encode('ascii', 'ignore').decode('UTF-8')
     str = utf.replace(' ', '')
     numStr = re.findall('\d+', str)[0]

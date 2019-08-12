@@ -7,6 +7,7 @@ class BuildFieldExceptionType(Enum):
     NOT_ENOUGH_PLACE = 'not_enough_place'
     INSUFFICIENT_CAPACITY = 'insufficient_capacity'
     UNKNOWN_ERROR = 'unknown_error'
+    NOT_ENOUGH_RESOURCES = 'not_enough_resources'
 
 
 class BuildFieldException(Exception):

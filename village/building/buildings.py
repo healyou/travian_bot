@@ -20,7 +20,7 @@ def buildExitingFieldWithRaiseException(browser, name: str):
 
     # Ошибки строительства
     try:
-        field = browser.find_element_by_css_selector('div.errorMessage > span')
+        field = browser.find_element_by_css_selector('div.errorMessage')
         error_message = field.text
     except NoSuchElementException:
         # Если элемента нет - ошибок строительства нет
@@ -40,6 +40,8 @@ def buildExitingFieldWithRaiseException(browser, name: str):
             raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_FOOD)
         elif ('Недостаточна вместимость' in error_message):
             raise BuildFieldException(error_message, BuildFieldExceptionType.INSUFFICIENT_CAPACITY)
+        elif ('Достаточно ресурсов' in error_message):
+            raise BuildFieldException(error_message, BuildFieldExceptionType.NOT_ENOUGH_RESOURCES)
         elif (not error_message):
             raise BuildFieldException(error_message, BuildFieldExceptionType.UNKNOWN_ERROR)
     else:

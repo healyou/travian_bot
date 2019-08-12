@@ -13,6 +13,7 @@ class BuildFieldExceptionVisitor(object):
             BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE: self.onBuildButtonUnavailable,
             BuildFieldExceptionType.NOT_ENOUGH_PLACE: self.onNotEnoughPlace,
             BuildFieldExceptionType.INSUFFICIENT_CAPACITY: self.onInsufficientCapacity,
+            BuildFieldExceptionType.NOT_ENOUGH_RESOURCES: self.onNotEnoughResources,
             BuildFieldExceptionType.UNKNOWN_ERROR: self.onUnknownError
         }.get(exception.type, self.onIllegalException)
         exc_method()
@@ -23,17 +24,25 @@ class BuildFieldExceptionVisitor(object):
             # self.tryToBuildField(Production.CORN.value)
 
     def onBuildButtonUnavailable(self):
-        print('Кнопка строительства недоступна')
+        pass
+        # print('Кнопка строительства недоступна')
 
     def onNotEnoughPlace(self):
-        print('Нет места для строительства')
+        pass
+        # print('Нет места для строительства')
 
     def onInsufficientCapacity(self):
+        pass
         # TODO - может быть склад и амбар
-        print('Недостаточна вместимость')
+        # print('Недостаточна вместимость')
+
+    def onNotEnoughResources(self):
+        pass
+        # print('Недостаточно ресурсов')
 
     def onUnknownError(self):
-        print('Не классифицируемая ошибка')
+        pass
+        # print('Не классифицируемая ошибка')
 
     def onIllegalException(self):
         print('Неизвестная ошибка строительства здания - IllegalException')

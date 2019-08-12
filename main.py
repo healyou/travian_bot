@@ -3,6 +3,7 @@ from utils.context import Context
 from village.villages import Village
 import time
 from village.command.commands import *
+from village.types import Production
 
 
 browser = open_travian()
@@ -10,9 +11,12 @@ Context.browser = browser
 try:
     login_to_account(browser)
 
-    OpenVillageCommand(51, 91).execute()
-    OpenVillageBuildingsCommand().execute()
-    OpenVillageResourcesCommand().execute()
+    build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
+    build.execute()
+
+    # OpenVillageCommand(51, 91).execute()
+    # OpenVillageBuildingsCommand().execute()
+    # OpenVillageResourcesCommand().execute()
 
     # village: Village = getVillage(browser)
     # village.run()

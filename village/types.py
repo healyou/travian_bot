@@ -11,6 +11,13 @@ def getBuildProductionTypes():
     }
 
 
+class BuildType(Enum): 
+    # Ресурсное поле 
+    RESOURCES = 'resources' 
+    # Строения внутри деревни 
+    BUILDINGS = 'buildings'
+
+
 class Production(Enum):
     WOOD = 'wood'
     CLAY = 'clay'
