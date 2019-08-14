@@ -3,7 +3,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement as SeleniumWebElement
-from village.types import Production
+from village.types import Production, IndoorBuildingType
+from selenium.webdriver.common.action_chains import ActionChains
+from command.commands import AbstractCommand, LamdbaCommand
+from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
+from selenium.common.exceptions import NoSuchElementException
 
 
 class AbstractSelector(object):
@@ -45,6 +49,116 @@ class WaitByIdSelector(AbstractSelector):
         return WebDriverWait(self._browser, self.WAIT_SECONDS).until(
             EC.presence_of_element_located((By.ID, self.id))
         )
+
+
+class IndoorBuildingSelector(AbstractSelector): 
+    def __init__(self, browser, type: IndoorBuildingType, lvl: int): 
+        super(IndoorBuildingSelector, self).__init__(browser) 
+        self._type: IndoorBuildingType = type 
+        self._lvl: int = lvl
+        self._exiting_building: bool = None
+        self._field_name: str = None
+        self._find_item = None
+    
+    # Вернёт элемент, по которому можно кликнуть для перехода в окно строительства
+    def findElement(self):
+        self.__findFirstFieldForSelectedType()
+        return self._find_item
+
+    def clickToElement(self):
+        if (self._find_item is None):
+            raise Exception('Необходимо вначале найти элемент')
+        else:
+            if (self._type == IndoorBuildingType.HEDGE):
+                # По изгороди просто так не кликнуть
+                hover = ActionChains(self._browser).move_to_element(self._find_item).click()
+                hover.perform()
+            else:
+                # По всем другим полям клик проходит без проблем
+                self._find_item.click()
+
+    # Определяет, построен ли хоть один уровень данного здания
+    def isExitingBuilding(self) -> bool:
+        if (self._exiting_building is None):
+            raise Exception('Необходимо вначале найти элемент')
+        else:
+            return self._exiting_building
+
+    def getFieldName(self) -> str:
+        if (self._field_name is None):
+            raise Exception('Необходимо вначале найти элемент')
+        else:
+            return self._field_name
+    
+    # Получить первое поле по указанному типу и уровню 
+    def __findFirstFieldForSelectedType(self):
+        # TODO - учёт уровня поля при строительстве
+        browser = self._browser
+
+        village_map = browser.find_element_by_css_selector('div#village_map')
+        elems = village_map.find_elements_by_xpath('//div[contains(@class, \'buildingSlot\') and .//div[contains(@class, \'level\')]]')
+
+        build_clicked_field = None
+        name = None
+        for elem in elems:
+            # hover по иконке с уровнем здания
+            level_item_to_hover = elem.find_element_by_css_selector('.level')
+            hover = ActionChains(browser).move_to_element(level_item_to_hover)
+            hover.perform()
+
+            build_container = elem
+            
+            # здесь текст основных зданий
+            hover_elem_tytle = browser.find_element_by_css_selector('div.tip > div.tip-container > div.tip-contents > div.title.elementTitle')
+
+            # Получаем текст первого уровня
+            all_text = hover_elem_tytle.text
+            child_elems = hover_elem_tytle.find_elements_by_xpath("./*")
+            parent_text = all_text
+            for child in child_elems:
+                parent_text = parent_text.replace(child.text, '')
+            print ('one_level_text=' + parent_text)
+
+            # TODO Наводим на далеко расположенный item - почему-то без этого не всегда срабатывает hover элемента
+            hover_item = browser.find_element_by_css_selector('button#heroImageButton')
+            hover = ActionChains(browser).move_to_element(hover_item)
+            hover.perform()
+
+            if (self._type == IndoorBuildingType.Stock):
+                if ('Склад' in parent_text):
+                    build_clicked_field = level_item_to_hover
+                    name = 'Склад'
+                    break
+            elif (self._type == IndoorBuildingType.GRANARY):
+                if ('Амбар' in parent_text):
+                    build_clicked_field = level_item_to_hover
+                    name = 'Амбар'
+                    break
+            elif (self._type == IndoorBuildingType.HEDGE):
+                if ('Изгородь' in parent_text):
+                    build_clicked_field = level_item_to_hover
+                    name = 'Изгородь'
+                    break
+            elif (self._type == IndoorBuildingType.WORKSHOP):
+                if ('Мастерская' in parent_text):
+                    build_clicked_field = level_item_to_hover
+                    name = 'Мастерская'
+                    break
+            # TODO - другие здания для постройки - Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
+
+        if (build_clicked_field is not None):
+            print ('Найдено поле ' + name)
+            self._field_name = name
+            self._find_item = build_clicked_field
+            self._exiting_building = True
+        else:
+            print ('Надо строить новое здание')
+            # Находим первую свободную стройплощадку
+            empty_field_sel = 'div.g0 > svg.buildingShape > .hoverShapeWinter'
+            first_empty_clicked_field = village_map.find_element_by_css_selector(empty_field_sel)
+            self._find_item = first_empty_clicked_field
+            self._field_name = 'Стройплощадка'
+            self._exiting_building = False
 
 
 class ProductionFieldSelector(AbstractSelector):

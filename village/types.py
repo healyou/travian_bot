@@ -34,3 +34,5 @@ class IndoorBuildingType(Enum):
     RESIDENCE = 'residence'
     # Изгородь
     HEDGE = 'hedge'
+    # Мастерская
+    WORKSHOP = 'workshop'

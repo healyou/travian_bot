@@ -53,6 +53,7 @@ def buildExitingFieldWithRaiseException(browser, name: str):
             raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
 
 
+# TODO - вероятно данный класс уже не нужен
 class AbstractBuilding(object):
     @abstractmethod
     def build(self):
@@ -60,6 +61,7 @@ class AbstractBuilding(object):
 
 
 # Ресурсное поле
+# TODO - вероятно данный класс уже не нужен
 class ProductionBuilding(AbstractBuilding):
     def __init__(self, type: Production):
         super(ProductionBuilding, self).__init__()
@@ -120,6 +122,7 @@ class ProductionBuilding(AbstractBuilding):
 
 
 # Здание внутри деревни
+# TODO - вероятно данный класс уже не нужен
 class IndoorBuilding(AbstractBuilding):
     def __init__(self, type: IndoorBuildingType):
         super(IndoorBuilding, self).__init__()

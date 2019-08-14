@@ -4,8 +4,8 @@ from utils.context import Context
 from utils.util import convert_str_with_one_number_to_int as toInt
 import re
 from element.elements import BaseElement
-from selector.selectors import ProductionFieldSelector
-from village.types import Production
+from selector.selectors import ProductionFieldSelector, IndoorBuildingSelector
+from village.types import Production, IndoorBuildingType
 from village.building.buildings import buildExitingFieldWithRaiseException
 from village.visitors import BuildFieldExceptionVisitor
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
@@ -57,6 +57,45 @@ class OpenVillageCommand(AbstractCommand):
                 vil_link.click()
                 return
         raise Exception('Не найдена деревня')
+
+
+class BuildVillageBuildingCommand(AbstractCommand): 
+    def __init__(self, type: IndoorBuildingType, lvl: int, vilX: int, vilY: int): 
+        super(BuildVillageBuildingCommand, self).__init__() 
+        self.__type: IndoorBuildingType = type 
+        self.__lvl: int = lvl 
+        self.__browser = Context.browser 
+        self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY) 
+        self.__open_vil_buildings_command: AbstractCommand = OpenVillageBuildingsCommand() 
+    
+    def execute(self): 
+        # TODO - надо ли ждать загрузки страницы? 
+        self.__open_vil_command.execute() 
+        self.__open_vil_buildings_command.execute() 
+        self.__buildField() 
+    
+    def __buildField(self): 
+        try: 
+            # Находим нужное поле 
+            browser = Context.browser 
+            selector = IndoorBuildingSelector(browser, self.__type, self.__lvl) 
+            selector.findElement()
+
+            # Открываем окно строительства
+            selector.clickToElement()
+
+            name = selector.getFieldName()
+
+            if (selector.isExitingBuilding()):
+                # Увеличиваем уровень здания
+                buildExitingFieldWithRaiseException(self.__browser, name) 
+            else:
+                # TODO - доделать строительство нового здания
+                # Строим новое здания из окно выбора строений
+                raise Exception('Не поддерживаемая операция')
+
+        except BuildFieldException as err: 
+            err.accept(BuildFieldExceptionVisitor())
 
 
 # Строит ресурсное поле
