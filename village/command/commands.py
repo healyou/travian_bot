@@ -117,6 +117,7 @@ class BuildProductionFieldCommand(AbstractCommand):
         try:
             # Находим нужное поле
             field = self.__getField()
+            # TODO - можно наверное инфу взять с самой панели строительства
             name = field.get_attribute('alt')
             # Открываем окно строительства поля
             field.click()

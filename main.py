@@ -11,8 +11,8 @@ Context.browser = browser
 try:
     login_to_account(browser)
 
-    # build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
-    build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
+    build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
+    # build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
     build.execute()
 
     # OpenVillageCommand(51, 91).execute()
@@ -30,7 +30,6 @@ finally:
     browser.quit()
 
 # делать далее
-# TODO 1)Создать Command, которая сможет строить здания
 # TODO 2)Сделать очередь обработки command, которые создают здания (можно добавлять туда задачи и всё) увязать с деревнями
 # TODO 3)Сделать отдельный поток на строительство зданий
 # TODO 4)Определение, когда необходимо строить склад и амбар и их постройка

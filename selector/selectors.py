@@ -175,7 +175,7 @@ class ProductionFieldSelector(AbstractSelector):
 
     # Получить первое поле по указанному типу и уровню
     def __getFirstFieldForSelectedType(self):
-        name_for_search = self.__getFieldName()
+        name_for_search = self.__getFieldSearchName()
         # Информация обо всех полях деревни
         fields = self._browser.find_elements_by_css_selector('div > map#rx > area[shape=\'circle\']')
         search_fields = []
@@ -188,7 +188,7 @@ class ProductionFieldSelector(AbstractSelector):
         else:
             return search_fields[0]
 
-    def __getFieldName(self) -> str:
+    def __getFieldSearchName(self) -> str:
         lvl_str = str(self._lvl)
         return {
             Production.WOOD: 'Лесопилка Уровень ' + lvl_str,

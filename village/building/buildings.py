@@ -113,7 +113,7 @@ class ProductionBuilding(AbstractBuilding):
 
     # Получить элементы всех полей по заданному типу
     def __getFieldsForSelectedType(self, type: Production):
-        name_for_search = self.__getFieldNameByBuildingType(type)
+        name_for_search = self.__getFieldSearchNameByBuildingType(type)
         # Информация обо всех полях деревни
         fields = self._browser.find_elements_by_css_selector('div > map#rx > area[shape=\'circle\']')
         search_fields = []
@@ -141,7 +141,7 @@ class ProductionBuilding(AbstractBuilding):
         field.click()
         buildExitingFieldWithRaiseException(self._browser, name)
 
-    def __getFieldNameByBuildingType(self, type: Production) -> str:
+    def __getFieldSearchNameByBuildingType(self, type: Production) -> str:
         return {
             Production.WOOD: 'Лесопилка Уровень',
             Production.IRON: 'Железный рудник Уровень',
