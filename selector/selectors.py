@@ -154,11 +154,14 @@ class IndoorBuildingSelector(AbstractSelector):
         else:
             print ('Надо строить новое здание')
             # Находим первую свободную стройплощадку
-            empty_field_sel = 'div.g0 > svg.buildingShape > .hoverShapeWinter'
-            first_empty_clicked_field = village_map.find_element_by_css_selector(empty_field_sel)
-            self._find_item = first_empty_clicked_field
-            self._field_name = 'Стройплощадка'
-            self._exiting_building = False
+            try:
+                empty_field_sel = 'div.g0 > svg.buildingShape > .hoverShapeWinter'
+                first_empty_clicked_field = village_map.find_element_by_css_selector(empty_field_sel)
+                self._find_item = first_empty_clicked_field
+                self._field_name = 'Стройплощадка'
+                self._exiting_building = False
+            except NoSuchElementException as err:
+                raise BuildFieldException('Нет места для строительства здания', BuildFieldExceptionType.NOT_ENOUGH_PLACE)
 
 
 class ProductionFieldSelector(AbstractSelector):

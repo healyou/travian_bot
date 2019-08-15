@@ -53,6 +53,35 @@ def buildExitingFieldWithRaiseException(browser, name: str):
             raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
 
 
+def buildNewVillageBuildingsWithRaiseException(browser, type: IndoorBuildingType, name: str):
+    # TODO - тут можно строить и другие типы зданий - Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
+    # TODO - часть инфы (имя поля для поиска) - можно вынести в enum
+    if (type == IndoorBuildingType.HEDGE):
+        try:
+            # TODO - надо выбирать здание из 3 типов - пром, военные и инфраструктура
+            # Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
+            military = browser.find_element_by_xpath('//a[contains(text(), \'Военные\') and @class=\'tabItem\']')
+            military.click()
+
+            hedge = browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'Изгородь\']]')
+            build_hedge = hedge.find_element_by_css_selector('button.green.new')
+            print ('Строим изгородь')
+            build_hedge.click()
+        except NoSuchElementException as err:
+            raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
+    elif (type == IndoorBuildingType.WORKSHOP):
+        try:
+            military = browser.find_element_by_xpath('//a[contains(text(), \'Военные\') and @class=\'tabItem\']')
+            military.click()
+
+            hedge = browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'Мастерская\']]')
+            build_hedge = hedge.find_element_by_css_selector('button.green.new')
+            print ('Строим мастерскую')
+            build_hedge.click()
+        except NoSuchElementException as err:
+            raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
+
+
 # TODO - вероятно данный класс уже не нужен
 class AbstractBuilding(object):
     @abstractmethod

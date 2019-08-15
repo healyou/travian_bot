@@ -6,7 +6,7 @@ import re
 from element.elements import BaseElement
 from selector.selectors import ProductionFieldSelector, IndoorBuildingSelector
 from village.types import Production, IndoorBuildingType
-from village.building.buildings import buildExitingFieldWithRaiseException
+from village.building.buildings import buildExitingFieldWithRaiseException, buildNewVillageBuildingsWithRaiseException
 from village.visitors import BuildFieldExceptionVisitor
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 
@@ -90,9 +90,8 @@ class BuildVillageBuildingCommand(AbstractCommand):
                 # Увеличиваем уровень здания
                 buildExitingFieldWithRaiseException(self.__browser, name) 
             else:
-                # TODO - доделать строительство нового здания
                 # Строим новое здания из окно выбора строений
-                raise Exception('Не поддерживаемая операция')
+                buildNewVillageBuildingsWithRaiseException(self.__browser, self.__type, name)
 
         except BuildFieldException as err: 
             err.accept(BuildFieldExceptionVisitor())
