@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 from utils.context import Context
+from village.types import Production, ProductionTypeVisitor
+from village.types import IndoorBuildingType, IndoorBuildingTypeVisitor
 
 
 class BuildFieldExceptionVisitor(object):
@@ -46,3 +48,41 @@ class BuildFieldExceptionVisitor(object):
 
     def onIllegalException(self):
         print('Неизвестная ошибка строительства здания - IllegalException')
+
+
+# Посетитель, который в зависимости от типа ресурсного поля вернёт строку
+# по которой надо искать элемент в web интерфейсе
+class ProductionFieldSearchNameVisitor(ProductionTypeVisitor):
+    def visitWood(self):
+        return 'Лесопилка Уровень'
+
+    def visitClay(self):
+        return 'Глиняный карьер Уровень'
+
+    def visitIron(self):
+        return 'Железный рудник Уровень'
+
+    def visitCorn(self):
+        return 'Ферма Уровень'
+
+
+class IndoorBuildingTypeSearchNameVisitor(IndoorBuildingTypeVisitor):
+    @abstractmethod
+    def visitStock(self):
+        return 'Склад'
+
+    @abstractmethod
+    def visitGranary(self):
+        return 'Амбар'
+
+    @abstractmethod
+    def visitResidence(self):
+        return 'Резиденция'
+
+    @abstractmethod
+    def visitHedge(self):
+        return 'Изгородь'
+
+    @abstractmethod
+    def visitWorkshop(self):
+        return 'Мастерская'

@@ -12,7 +12,7 @@ try:
     login_to_account(browser)
 
     build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
-    # build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
+    # build = BuildVillageBuildingCommand(IndoorBuildingType.GRANARY, 7, 51, 91)
     build.execute()
 
     # OpenVillageCommand(51, 91).execute()

@@ -4,7 +4,7 @@ from selector.selectors import IdSelector
 from utils.context import Context
 import operator
 from .building.buildings import ProductionBuilding, IndoorBuilding
-from .types import Production, IndoorBuildingType, getBuildProductionTypes
+from .types import Production, IndoorBuildingType
 from command.commands import AbstractCommand
 
 
@@ -76,7 +76,7 @@ class Village(AbstractVillage):
         building.build()
 
     def buildStock(self):
-        stock = IndoorBuilding(IndoorBuildingType.Stock)
+        stock = IndoorBuilding(IndoorBuildingType.STOCK)
         stock.build()
 
     def buildGranary(self):
@@ -100,7 +100,7 @@ class Village(AbstractVillage):
 
     # Получить тип поля с самым маленьким уровнем производства
     def getNextBuildFieldType(self) -> Production:
-        build_prod_types = dict((k,self.production[k]) for k in getBuildProductionTypes() if k in self.production)
+        build_prod_types = dict((k,self.production[k]) for k in Production if k in self.production)
 
         # зерно считаем на 50% больше, т.к. его много ненадо
         corn_prod = build_prod_types[Production.CORN]

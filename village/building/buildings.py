@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from command.commands import AbstractCommand, LamdbaCommand
+from village.visitors import ProductionFieldSearchNameVisitor
 
 # По полю уже кликнули и теперь надо только нажать построить
 # TODO - это надо вынести в отдельный метод для строительства не нового здания
@@ -141,13 +142,9 @@ class ProductionBuilding(AbstractBuilding):
         field.click()
         buildExitingFieldWithRaiseException(self._browser, name)
 
+    # Вернёт имя, которое надо искать в интерфейсе для указанного типа поля
     def __getFieldSearchNameByBuildingType(self, type: Production) -> str:
-        return {
-            Production.WOOD: 'Лесопилка Уровень',
-            Production.IRON: 'Железный рудник Уровень',
-            Production.CLAY: 'Глиняный карьер Уровень',
-            Production.CORN: 'Ферма Уровень'
-        }[type]
+        return type.accept(ProductionFieldSearchNameVisitor())
 
 
 # Здание внутри деревни

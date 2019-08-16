@@ -1,5 +1,8 @@
 {
     "python.pythonPath": ".venv\\Scripts\\python.exe",
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 3000
+    "files.autoSaveDelay": 3000,
+    "python.analysis.disabled": [
+        "inherit-non-class"
+    ]
 }

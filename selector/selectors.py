@@ -8,6 +8,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from command.commands import AbstractCommand, LamdbaCommand
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 from selenium.common.exceptions import NoSuchElementException
+from village.visitors import IndoorBuildingTypeSearchNameVisitor, ProductionFieldSearchNameVisitor
 
 
 class AbstractSelector(object):
@@ -92,7 +93,6 @@ class IndoorBuildingSelector(AbstractSelector):
     
     # Получить первое поле по указанному типу и уровню 
     def __findFirstFieldForSelectedType(self):
-        # TODO - учёт уровня поля при строительстве
         browser = self._browser
 
         village_map = browser.find_element_by_css_selector('div#village_map')
@@ -117,34 +117,18 @@ class IndoorBuildingSelector(AbstractSelector):
             parent_text = all_text
             for child in child_elems:
                 parent_text = parent_text.replace(child.text, '')
-            print ('one_level_text=' + parent_text)
 
             # TODO Наводим на далеко расположенный item - почему-то без этого не всегда срабатывает hover элемента
             hover_item = browser.find_element_by_css_selector('button#heroImageButton')
             hover = ActionChains(browser).move_to_element(hover_item)
             hover.perform()
 
-            if (self._type == IndoorBuildingType.Stock):
-                if ('Склад' in parent_text):
-                    build_clicked_field = level_item_to_hover
-                    name = 'Склад'
-                    break
-            elif (self._type == IndoorBuildingType.GRANARY):
-                if ('Амбар' in parent_text):
-                    build_clicked_field = level_item_to_hover
-                    name = 'Амбар'
-                    break
-            elif (self._type == IndoorBuildingType.HEDGE):
-                if ('Изгородь' in parent_text):
-                    build_clicked_field = level_item_to_hover
-                    name = 'Изгородь'
-                    break
-            elif (self._type == IndoorBuildingType.WORKSHOP):
-                if ('Мастерская' in parent_text):
-                    build_clicked_field = level_item_to_hover
-                    name = 'Мастерская'
-                    break
-            # TODO - другие здания для постройки - Сделать класс, который будет сам за этим следить и было бы быстро добавлять новые здания
+            # Находим имя компонента, который надо найти
+            search_name = self._type.accept(IndoorBuildingTypeSearchNameVisitor())
+            if (search_name in parent_text):
+                build_clicked_field = level_item_to_hover
+                name = self._type.displayName
+                break
 
         if (build_clicked_field is not None):
             print ('Найдено поле ' + name)
@@ -190,9 +174,4 @@ class ProductionFieldSelector(AbstractSelector):
 
     def __getFieldSearchName(self) -> str:
         lvl_str = str(self._lvl)
-        return {
-            Production.WOOD: 'Лесопилка Уровень ' + lvl_str,
-            Production.IRON: 'Железный рудник Уровень ' + lvl_str,
-            Production.CLAY: 'Глиняный карьер Уровень ' + lvl_str,
-            Production.CORN: 'Ферма Уровень ' + lvl_str,
-        }[self._type]
+        return self._type.accept(ProductionFieldSearchNameVisitor()) + ' ' + lvl_str
