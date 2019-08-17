@@ -3,7 +3,6 @@ from element.elements import BaseElement
 from selector.selectors import IdSelector
 from utils.context import Context
 import operator
-from .building.buildings import ProductionBuilding, IndoorBuilding
 from .types import Production, IndoorBuildingType
 from command.commands import AbstractCommand
 
@@ -72,20 +71,7 @@ class Village(AbstractVillage):
     def build(self):
         type = self.getNextBuildFieldType()
         type = Production.CLAY
-        building = ProductionBuilding(type)
-        building.build()
-
-    def buildStock(self):
-        stock = IndoorBuilding(IndoorBuildingType.STOCK)
-        stock.build()
-
-    def buildGranary(self):
-        stock = IndoorBuilding(IndoorBuildingType.GRANARY)
-        stock.build()
-
-    def buildHedge(self):
-        stock = IndoorBuilding(IndoorBuildingType.HEDGE)
-        stock.build()
+        # TODO стрительство здания - не могу импортировать команду
 
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):

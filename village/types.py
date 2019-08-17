@@ -52,13 +52,12 @@ class ProductionTypeVisitor(object):
         pass
 
 
-IndoorBuildingTuple = namedtuple('IndoorBuildingTuple', ['code', 'displayName'])
-class IndoorBuildingType(Enum):
-    STOCK = IndoorBuildingTuple('stock', 'Склад')
-    GRANARY = IndoorBuildingTuple('granary', 'Амбар')
-    RESIDENCE = IndoorBuildingTuple('residence', 'Резиденция')
-    HEDGE = IndoorBuildingTuple('hedge', 'Изгородь')
-    WORKSHOP = IndoorBuildingTuple('workshop', 'Мастерская')
+# Тип строительства нового здания
+NewIndoorBuildingTuple = namedtuple('NewIndoorBuildingTuple', ['code', 'displayName'])
+class NewIndoorBuildingType(Enum):
+    INFRASTRUCTURE = NewIndoorBuildingTuple('infrastructure', 'Инфраструктура')
+    MILITARY = NewIndoorBuildingTuple('Military', 'Военные')
+    INDUSTRY = NewIndoorBuildingTuple('Industry', 'Промышленность')
 
     @property
     def code(self) -> str:
@@ -67,6 +66,55 @@ class IndoorBuildingType(Enum):
     @property
     def displayName(self) -> str:
         return self.value.displayName
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+class NewIndoorBuildingTypeVisitor(object):
+    def visit(self, type: NewIndoorBuildingType):
+        ex_method = {
+            NewIndoorBuildingType.INFRASTRUCTURE: self.visitInfrastructure,
+            NewIndoorBuildingType.MILITARY: self.visitMilitary,
+            NewIndoorBuildingType.INDUSTRY: self.visitIndustry
+        }.get(type, self.onIllegalType)
+        return ex_method()
+
+    def onIllegalType(self):
+        raise Exception('Неизвестный тип нового здания')
+
+    @abstractmethod
+    def visitInfrastructure(self):
+        pass
+
+    @abstractmethod
+    def visitMilitary(self):
+        pass
+
+    @abstractmethod
+    def visitIndustry(self):
+        pass
+
+
+IndoorBuildingTuple = namedtuple('IndoorBuildingTuple', ['code', 'displayName', 'newBuildType'])
+class IndoorBuildingType(Enum):
+    STOCK = IndoorBuildingTuple('stock', 'Склад', NewIndoorBuildingType.INFRASTRUCTURE)
+    GRANARY = IndoorBuildingTuple('granary', 'Амбар', NewIndoorBuildingType.INFRASTRUCTURE)
+    RESIDENCE = IndoorBuildingTuple('residence', 'Резиденция', NewIndoorBuildingType.INFRASTRUCTURE)
+    HEDGE = IndoorBuildingTuple('hedge', 'Изгородь', NewIndoorBuildingType.MILITARY)
+    WORKSHOP = IndoorBuildingTuple('workshop', 'Мастерская', NewIndoorBuildingType.MILITARY)
+
+    @property
+    def code(self) -> str:
+        return self.value.code
+
+    @property
+    def displayName(self) -> str:
+        return self.value.displayName
+
+    @property
+    def newBuildType(self) -> NewIndoorBuildingType:
+        return self.value.newBuildType
 
     def accept(self, visitor):
         return visitor.visit(self)

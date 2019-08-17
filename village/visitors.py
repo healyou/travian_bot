@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 from utils.context import Context
 from village.types import Production, ProductionTypeVisitor
-from village.types import IndoorBuildingType, IndoorBuildingTypeVisitor
+from village.types import IndoorBuildingType, IndoorBuildingTypeVisitor, NewIndoorBuildingTypeVisitor
 
 
 class BuildFieldExceptionVisitor(object):
@@ -14,7 +14,9 @@ class BuildFieldExceptionVisitor(object):
             BuildFieldExceptionType.NOT_ENOUGH_FOOD: self.onNotEnoughFood,
             BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE: self.onBuildButtonUnavailable,
             BuildFieldExceptionType.NOT_ENOUGH_PLACE: self.onNotEnoughPlace,
-            BuildFieldExceptionType.INSUFFICIENT_CAPACITY: self.onInsufficientCapacity,
+            BuildFieldExceptionType.INSUFFICIENT_GRANARY_CAPACITY: self.onInsufficientGranaryCapacity,
+            BuildFieldExceptionType.INSUFFICIENT_STOCK_CAPACITY: self.onInsufficientStockCapacity,
+            BuildFieldExceptionType.INSUFFICIENT_ALL_CAPACITY: self.onInsufficientAllCapacity,
             BuildFieldExceptionType.NOT_ENOUGH_RESOURCES: self.onNotEnoughResources,
             BuildFieldExceptionType.UNKNOWN_ERROR: self.onUnknownError
         }.get(exception.type, self.onIllegalException)
@@ -33,9 +35,16 @@ class BuildFieldExceptionVisitor(object):
         pass
         # print('Нет места для строительства')
 
-    def onInsufficientCapacity(self):
+    def onInsufficientGranaryCapacity(self):
         pass
-        # TODO - может быть склад и амбар
+        # print('Недостаточна вместимость')
+
+    def onInsufficientStockCapacity(self):
+        pass
+        # print('Недостаточна вместимость')
+
+    def onInsufficientAllCapacity(self):
+        pass
         # print('Недостаточна вместимость')
 
     def onNotEnoughResources(self):
@@ -86,3 +95,32 @@ class IndoorBuildingTypeSearchNameVisitor(IndoorBuildingTypeVisitor):
     @abstractmethod
     def visitWorkshop(self):
         return 'Мастерская'
+
+
+# Поиск кнопки строительства нового здания в зависимости от типа строения
+class BuildButtonNewIndoorVisitor(NewIndoorBuildingTypeVisitor):
+    def __init__(self, browser, buildingName: str):
+        super(BuildButtonNewIndoorVisitor, self).__init__()
+        self.__browser = browser
+        self.__buildingName = buildingName
+
+    def visitInfrastructure(self):
+        military = self.__browser.find_element_by_xpath('//a[contains(text(), \'Инфраструктура\') and @class=\'tabItem\']')
+        military.click()
+        building = self.__browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'' + self.__buildingName + '\']]')
+        build_button = building.find_element_by_css_selector('button.green.new')
+        return build_button
+
+    def visitMilitary(self):
+        military = self.__browser.find_element_by_xpath('//a[contains(text(), \'Военные\') and @class=\'tabItem\']')
+        military.click()
+        building = self.__browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'' + self.__buildingName + '\']]')
+        build_button = building.find_element_by_css_selector('button.green.new')
+        return build_button
+
+    def visitIndustry(self):
+        military = self.__browser.find_element_by_xpath('//a[contains(text(), \'Промышленность\') and @class=\'tabItem\']')
+        military.click()
+        building = self.__browser.find_element_by_xpath('//div[contains(@class, \'buildingWrapper\') and .//*[text()=\'' + self.__buildingName + '\']]')
+        build_button = building.find_element_by_css_selector('button.green.new')
+        return build_button

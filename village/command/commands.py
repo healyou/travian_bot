@@ -45,10 +45,9 @@ class OpenVillageCommand(AbstractCommand):
         css = '#sidebarBoxVillagelist > .sidebarBoxInnerBox > .content > ul > li'
         elems = browser.find_elements_by_css_selector(css)
         for elem in elems:
-            # TODO - поиск деревни по заданным параметрам
+            # Координаты деревни
             xComp = elem.find_element_by_css_selector('.coordinates > .coordinateX')
             yComp = elem.find_element_by_css_selector('.coordinates > .coordinateY')
-            
             vilX = toInt(xComp.text)
             vilY = toInt(yComp.text)
             
@@ -69,7 +68,6 @@ class BuildVillageBuildingCommand(AbstractCommand):
         self.__open_vil_buildings_command: AbstractCommand = OpenVillageBuildingsCommand() 
     
     def execute(self): 
-        # TODO - надо ли ждать загрузки страницы? 
         self.__open_vil_command.execute() 
         self.__open_vil_buildings_command.execute() 
         self.__buildField() 
@@ -88,7 +86,7 @@ class BuildVillageBuildingCommand(AbstractCommand):
 
             if (selector.isExitingBuilding()):
                 # Увеличиваем уровень здания
-                buildExitingFieldWithRaiseException(self.__browser, name) 
+                buildExitingFieldWithRaiseException(self.__browser) 
             else:
                 # Строим новое здания из окно выбора строений
                 buildNewVillageBuildingsWithRaiseException(self.__browser, self.__type, name)
@@ -108,7 +106,6 @@ class BuildProductionFieldCommand(AbstractCommand):
         self.__open_resources_command: AbstractCommand = OpenVillageResourcesCommand()
 
     def execute(self):
-        # TODO - надо ли ждать загрузки страницы?
         self.__open_vil_command.execute()
         self.__open_resources_command.execute()
         self.__buildField()
@@ -117,12 +114,10 @@ class BuildProductionFieldCommand(AbstractCommand):
         try:
             # Находим нужное поле
             field = self.__getField()
-            # TODO - можно наверное инфу взять с самой панели строительства
-            name = field.get_attribute('alt')
             # Открываем окно строительства поля
             field.click()
             # Строим в окне строительства
-            buildExitingFieldWithRaiseException(self.__browser, name)
+            buildExitingFieldWithRaiseException(self.__browser)
         except BuildFieldException as err:
             err.accept(BuildFieldExceptionVisitor())
 
@@ -131,12 +126,3 @@ class BuildProductionFieldCommand(AbstractCommand):
         selector = ProductionFieldSelector(browser, self.__type, self.__lvl)
         elem = BaseElement(browser, selector)
         return elem.getElement()
-
-
-# TODO - что надо реализовать по постройке полей
-# общий план таков: 
-# Команда на строительство полей: тип строительства(внутри или снаружи деревни)
-#   Тип поля - ресурсное какое или внутри поле
-#   Уровень поля - так можно будет строить поля, если одинаковых 2 и более
-#   Привязана также к какой-то деревне - по атрибутам, чтобы строить в конкретной здание
-# FieldFinder - найдёт компонент поля по заданным параметра, по котормоу можно кликнуть и начать строить
