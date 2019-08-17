@@ -1,10 +1,13 @@
+import operator
 from abc import abstractmethod
+
+from village.command.commands import BuildProductionFieldCommand
+from command.commands import AbstractCommand
 from element.elements import BaseElement
 from selector.selectors import IdSelector
 from utils.context import Context
-import operator
-from .types import Production, IndoorBuildingType
-from command.commands import AbstractCommand
+
+from .types import IndoorBuildingType, Production
 
 
 class CreateFieldCommand(AbstractCommand):
@@ -70,8 +73,8 @@ class Village(AbstractVillage):
 
     def build(self):
         type = self.getNextBuildFieldType()
-        type = Production.CLAY
-        # TODO стрительство здания - не могу импортировать команду
+        build = BuildProductionFieldCommand(type, 7, 51, 91)
+        build.execute()
 
     # Строится ли уже какое-то здание
     def isFieldBuilding(self):

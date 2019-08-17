@@ -14,6 +14,22 @@ def convert_str_with_one_number_to_int(s):
     return int(numStr)
 
 
+def getVillagesCoords(browser):
+    coord = []
+
+    css = '#sidebarBoxVillagelist > .sidebarBoxInnerBox > .content > ul > li'
+    elems = browser.find_elements_by_css_selector(css)
+    for elem in elems:
+        # Координаты деревни
+        xComp = elem.find_element_by_css_selector('.coordinates > .coordinateX')
+        yComp = elem.find_element_by_css_selector('.coordinates > .coordinateY')
+        vilX = convert_str_with_one_number_to_int(xComp.text)
+        vilY = convert_str_with_one_number_to_int(yComp.text)
+        coord.append((vilX, vilY))
+
+    raise coord
+
+
 def get_absolute_file_path(cur_script_file, rel_file_path):
     script_dir = os.path.dirname(cur_script_file)
     return os.path.join(script_dir, rel_file_path)
