@@ -1,19 +1,29 @@
-from utils.util import open_travian, open_village, getVillage, login_to_account
+from utils.travian_utils import open_travian, open_village, getVillage, login_to_account
 from utils.context import Context
 from village.villages import Village
 import time
 from village.command.commands import *
 from village.types import Production
+from command.queue.properties import QueueProperties
+from command.queue.buildthread import BuildThread
 
-
-browser = open_travian()
-Context.browser = browser
+# browser = open_travian()
+# Context.browser = browser
 try:
-    login_to_account(browser)
+    # login_to_account(browser)
+
+    thread = BuildThread()
+    thread.start()
+
+    time.sleep(30)
+
+    # prop = QueueProperties(browser)
+    # props = prop.getVillageProperties(51, 91)
+    k = 1
 
     # build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
-    build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
-    build.execute()
+    # build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
+    # build.execute()
 
     # OpenVillageCommand(51, 91).execute()
     # OpenVillageBuildingsCommand().execute()
@@ -27,7 +37,7 @@ except OSError as err:
 finally:
     time.sleep(5)
     print('Завершение работы скрипта')
-    browser.quit()
+    # browser.quit()
 
 # делать далее
 # TODO 2)Сделать очередь обработки command, которые создают здания (можно добавлять туда задачи и всё) увязать с деревнями

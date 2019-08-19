@@ -1,13 +1,13 @@
 from utils.util import getVillagesCoords
 from collections import namedtuple
-import datetime
+from datetime import datetime
 
 
 BuildProperties = namedtuple('BuildProperties', [
     # Автоматическое строительство ресурсов
     'auto_build_resources',
     # Время строительства следующего здания
-    'next_build_time'
+    'next_build_datetime'
 ])
 VillageCoord = namedtuple('VillageCoord', [
     'x', 'y'
@@ -26,13 +26,13 @@ class QueueProperties(object):
 
     def getVillageProperties(self, x, y) -> BuildProperties:
         for (vil_coord, prop) in self.__properties:
-            if (vil_coord.x == x and vil_coord.y == y):
+            if (vil_coord[0] == x and vil_coord[1] == y):
                 return prop
         raise Exception('Деревня не найдена')
     
     def getNextBuildTime(self, x, y):
         for (vil_coord, prop) in self.__properties:
-            if (vil_coord.x == x and vil_coord.y == y):
+            if (vil_coord[0] == x and vil_coord[1] == y):
                 return prop.next_build_time
         raise Exception('Деревня не найдена')
 
