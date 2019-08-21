@@ -1,14 +1,19 @@
+import re
 from abc import abstractmethod
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.remote.webelement import WebElement as SeleniumWebElement
-from village.types import Production, IndoorBuildingType
-from selenium.webdriver.common.action_chains import ActionChains
-from command.commands import AbstractCommand, LamdbaCommand
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
+
 from selenium.common.exceptions import NoSuchElementException
-from village.visitors import IndoorBuildingTypeSearchNameVisitor, ProductionFieldSearchNameVisitor
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import \
+    WebElement as SeleniumWebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+from command.commands import AbstractCommand, LamdbaCommand
+from village.types import IndoorBuildingType, Production
+from village.visitors import (IndoorBuildingTypeSearchNameVisitor,
+                              ProductionFieldSearchNameVisitor)
 
 
 class AbstractSelector(object):
@@ -148,6 +153,7 @@ class IndoorBuildingSelector(AbstractSelector):
                 raise BuildFieldException('Нет места для строительства здания', BuildFieldExceptionType.NOT_ENOUGH_PLACE)
 
 
+# Поиск компонента ресурсного поля
 class ProductionFieldSelector(AbstractSelector):
     def __init__(self, browser, type: Production, lvl: int):
         super(ProductionFieldSelector, self).__init__(browser)
@@ -175,3 +181,37 @@ class ProductionFieldSelector(AbstractSelector):
     def __getFieldSearchName(self) -> str:
         lvl_str = str(self._lvl)
         return self._type.accept(ProductionFieldSearchNameVisitor()) + ' ' + lvl_str
+
+
+# Находит компонент ресурсного поля с самым маленьким уровнем
+class ProductionFieldWithSmallLevelSelector(AbstractSelector):
+    def __init__(self, browser, type: Production):
+        super(ProductionFieldWithSmallLevelSelector, self).__init__(browser)
+        self._type: Production = type
+
+    def findElement(self):
+        return self.__getFirstFieldForSelectedType()
+
+    # Получить первое поле по указанному типу и уровню
+    def __getFirstFieldForSelectedType(self):
+        name_for_search = self.__getFieldSearchName()
+        # Информация обо всех полях деревни
+        fields = self._browser.find_elements_by_css_selector('div > map#rx > area[shape=\'circle\']')
+
+        small_field_lvl: int = None
+        small_field = None
+        for field in fields:
+            name_with_level = field.get_attribute('alt')
+
+            # Поле нашего типа
+            if (name_for_search in name_with_level):
+                field_level: int = int(re.findall('\d+', name_with_level)[0])
+
+                if (small_field_lvl is None or field_level < small_field_lvl):
+                    small_field_lvl = field_level
+                    small_field = field
+        
+        return small_field
+
+    def __getFieldSearchName(self) -> str:
+        return self._type.accept(ProductionFieldSearchNameVisitor())

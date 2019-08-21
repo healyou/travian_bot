@@ -1,14 +1,21 @@
+import re
+from abc import abstractmethod
+from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
+
 from command.commands import AbstractCommand
 from command.creator.factory import JsonCommandCreator
+from element.elements import BaseElement
+from selector.selectors import (AbstractSelector, IndoorBuildingSelector,
+                                ProductionFieldSelector, 
+                                ProductionFieldWithSmallLevelSelector)
 from utils.context import Context
 from utils.util import convert_str_with_one_number_to_int as toInt
-import re
-from element.elements import BaseElement
-from selector.selectors import ProductionFieldSelector, IndoorBuildingSelector
-from village.types import Production, IndoorBuildingType
-from village.building.buildings import buildExitingFieldWithRaiseException, buildNewVillageBuildingsWithRaiseException
+from village.building.buildings import (
+    buildExitingFieldWithRaiseException,
+    buildNewVillageBuildingsWithRaiseException)
+from village.types import IndoorBuildingType, Production
+from village.villages import CurrentVillageAnalazer
 from village.visitors import BuildFieldExceptionVisitor
-from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 
 
 # Открывает ресурсные поля в выбранной деревне
@@ -96,12 +103,12 @@ class BuildVillageBuildingCommand(AbstractCommand):
 
 
 # Строит ресурсное поле
-class BuildProductionFieldCommand(AbstractCommand): 
-    def __init__(self, type: Production, lvl: int, vilX: int, vilY: int): 
-        super(BuildProductionFieldCommand, self).__init__() 
-        self.__type: Production = type 
-        self.__lvl: int = lvl
-        self.__browser = Context.browser
+class AbstractProductionFieldCommand(AbstractCommand):
+    def __init__(self, type: Production, vilX: int, vilY: int): 
+        super(AbstractProductionFieldCommand, self).__init__() 
+        self._type: Production = type 
+        self._browser = Context.browser
+
         self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY)
         self.__open_resources_command: AbstractCommand = OpenVillageResourcesCommand()
 
@@ -117,12 +124,66 @@ class BuildProductionFieldCommand(AbstractCommand):
             # Открываем окно строительства поля
             field.click()
             # Строим в окне строительства
-            buildExitingFieldWithRaiseException(self.__browser)
+            buildExitingFieldWithRaiseException(self._browser)
         except BuildFieldException as err:
             err.accept(BuildFieldExceptionVisitor())
 
     def __getField(self):
-        browser = Context.browser
-        selector = ProductionFieldSelector(browser, self.__type, self.__lvl)
-        elem = BaseElement(browser, selector)
+        selector = self._getFieldSelector()
+        elem = BaseElement(self._browser, selector)
         return elem.getElement()
+
+    # Получить селектор для ресурсного поля
+    @abstractmethod
+    def _getFieldSelector(self) -> AbstractSelector:
+        pass
+
+
+# Строит ресурсное поле по указанному уровню
+class BuildProductionFieldCommand(AbstractProductionFieldCommand): 
+    def __init__(self, type: Production, lvl: int, vilX: int, vilY: int): 
+        super(BuildProductionFieldCommand, self).__init__(type, vilX, vilY) 
+        self.__lvl: int = lvl
+
+    def _getFieldSelector(self) -> AbstractSelector:
+        fieldLevel = self.__lvl
+        return ProductionFieldSelector(self._browser, self._type, fieldLevel)
+
+
+# Строит ресурсное поле с минимальным уровнем
+class BuildProductionFieldWithSmallLevelCommand(AbstractProductionFieldCommand):
+    def __init__(self, type: Production, vilX: int, vilY: int): 
+        super(BuildProductionFieldWithSmallLevelCommand, self).__init__(type, vilX, vilY) 
+
+    def _getFieldSelector(self) -> AbstractSelector:
+        return ProductionFieldWithSmallLevelSelector(self._browser, self._type)
+
+
+# Команда автоматического строительства ресурсного поля
+class AutoBuildProductionFieldCommand(AbstractCommand):
+    def __init__(self, vilX: int, vilY: int): 
+        super(AutoBuildProductionFieldCommand, self).__init__() 
+        self.__coordX = vilX
+        self.__coordY = vilY
+        self.__browser = Context.browser
+        self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY)
+        self.__open_resources_command: AbstractCommand = OpenVillageResourcesCommand()
+        self.__analizer = CurrentVillageAnalazer(self.__browser)
+
+    def execute(self):
+        # открываем выбранную деревню
+        self.__open_vil_command.execute()
+        # Открываем вкладку ресурсов деревни
+        self.__open_resources_command.execute()
+
+        if (self.__analizer.isFieldBuilding()):
+            # Ищем тип ресурсного поля, которое надо построить
+            buildFieldType: Production = self.__analizer.getNextBuildFieldType()
+
+            # Строительство ресурсного поля
+            buildCommand: AbstractCommand = BuildProductionFieldWithSmallLevelCommand(
+                buildFieldType, self.__coordX, self.__coordY
+            )
+            buildCommand.execute()
+        else:
+            raise BuildFieldException('Уже идёт строительство здания', BuildFieldExceptionType.ALREADY_BUILD)

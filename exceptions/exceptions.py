@@ -10,12 +10,14 @@ class BuildFieldExceptionType(Enum):
     INSUFFICIENT_ALL_CAPACITY = 'insufficient_capacity'
     UNKNOWN_ERROR = 'unknown_error'
     NOT_ENOUGH_RESOURCES = 'not_enough_resources'
+    # Строительство уже идёт
+    ALREADY_BUILD = 'already_build'
 
 
 class BuildFieldException(Exception):
-    def __init__(self, message, type):
+    def __init__(self, message, type: BuildFieldExceptionType):
         super(BuildFieldException, self).__init__(message)
-        self.type = type
+        self.type: BuildFieldExceptionType = type
 
     def accept(self, visitor) -> None:
         visitor.visit(self)

@@ -1,5 +1,4 @@
 from command.creator.factory import JsonCommandCreator
-from village.villages import Village
 from selenium.webdriver import Chrome
 
 
@@ -25,9 +24,3 @@ def open_village(browser):
     creator = JsonCommandCreator(browser, 'files/travian/open_village.json')
     command = creator.createCommand()
     command.execute()
-
-
-def getVillage(browser):
-    css = '#sidebarBoxVillagelist > .sidebarBoxInnerBox > div > ul > .active > a > div.name'
-    elem = browser.find_element_by_css_selector(css)
-    return Village(browser, elem.text)
