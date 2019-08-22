@@ -18,7 +18,7 @@ try:
 
     # prop = QueueProperties(browser)
     # props = prop.getVillageProperties(51, 91)
-    k = 1
+    # k = 1
 
     command = AutoBuildProductionFieldCommand(51, 91)
     command.execute()

@@ -1,20 +1,59 @@
-from abc import abstractmethod
-from village.visitors import BuildFieldExceptionVisitor
-from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
-from selenium.common.exceptions import NoSuchElementException
 import re
-from utils.context import Context
-from village.types import Production, IndoorBuildingType
-from selenium.webdriver.common.action_chains import ActionChains
 import time
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from abc import abstractmethod
+from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
+
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 from command.commands import AbstractCommand, LamdbaCommand
-from village.visitors import ProductionFieldSearchNameVisitor, BuildButtonNewIndoorVisitor
+from element.elements import BaseElement
+from selector.selectors import IdSelector
+from utils.context import Context
+from village.types import IndoorBuildingType, Production
+from village.visitors import (BuildButtonNewIndoorVisitor,
+                              BuildFieldExceptionVisitor,
+                              ProductionFieldSearchNameVisitor)
+
+
+def convert_str_to_int(s) -> int:
+    utf = s.encode('ascii', 'ignore').decode('UTF-8')
+    numStr = utf.replace(' ', '')
+    return int(numStr)
+
+def getStockBarParameter(browser, componentId) -> int:
+    selector = IdSelector(browser, componentId)
+    elem = BaseElement(browser, selector)
+    web_elem = elem.getElement()
+    return convert_str_to_int(web_elem.text)
 
 # Строит здание через страницу увеличения уровня здания
 def buildExitingFieldWithRaiseException(browser):
+    # start Проверяем необходимость строительства склада или амбара
+    warehouse = getStockBarParameter(browser, 'stockBarWarehouse')
+    granary = getStockBarParameter(browser, 'stockBarGranary')
+
+    build_resources_items = browser.find_elements_by_css_selector(
+        'div#contract > div > div.resource'
+    )
+    wood_count = convert_str_to_int(build_resources_items[0].text)
+    clay_count = convert_str_to_int(build_resources_items[1].text)
+    iron_count = convert_str_to_int(build_resources_items[2].text)
+    corn_count = convert_str_to_int(build_resources_items[3].text)
+
+    max_resource = int(warehouse * 0.1)
+    if (wood_count >= max_resource or 
+        clay_count >= max_resource or 
+        iron_count >= max_resource):
+        print ('Необходимо строить склад')
+    elif (corn_count >= int(granary * 0.1)):
+        print ('Необходимо строить амбар')
+    # TODO - надо добавлять параметр для создания задачи строительства амбара или склада
+    # end
+
     field_title = browser.find_element_by_css_selector('.contentContainer > .build > .titleInHeader')
     name: str = field_title.text
 
