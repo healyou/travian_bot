@@ -7,7 +7,10 @@ BuildProperties = namedtuple('BuildProperties', [
     # Автоматическое строительство ресурсов
     'auto_build_resources',
     # Время строительства следующего здания
-    'next_build_datetime'
+    'next_build_datetime',
+    # Необходимость строительства склада или амбара
+    # None - ничего, True - Stock, False - Granary
+    'is_stock_or_granary_build'
 ])
 VillageCoord = namedtuple('VillageCoord', [
     'x', 'y'
@@ -20,7 +23,9 @@ class QueueProperties(object):
         villages_coords = getVillagesCoords(browser)
         properties = []
         for (x, y) in villages_coords:
-            properties.append((VillageCoord(x, y), BuildProperties(True, datetime.today())))
+            properties.append((VillageCoord(x, y), BuildProperties(
+                True, datetime.today(), None
+            )))
 
         self.__properties = properties
 
