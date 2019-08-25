@@ -22,6 +22,20 @@ from village.villages import CurrentVillageAnalazer
 from village.visitors import (BuildButtonNewIndoorVisitor,
                               BuildFieldExceptionVisitor,
                               ProductionFieldSearchNameVisitor)
+from command.queue.properties import VillageProperties
+
+
+# Команда, которая имеет доступ к свойствам деревни (доп. информация для создания задач)
+class AbstractVillageCommand(AbstractCommand):
+    def __init__(self, coordX, coordY):
+        super(AbstractVillageCommand, self).__init__()
+        self._coordX = coordX
+        self._coordY = coordY
+        self._prop: VillageProperties = VillageProperties(coordX, coordY)
+
+    @abstractmethod
+    def execute(self):
+        pass
 
 
 # Открывает ресурсные поля в выбранной деревне
@@ -76,9 +90,10 @@ class OpenVillageCommand(AbstractCommand):
 
 # Строит здание через страницу увеличения уровня здания
 class BuildExitingFieldCommand(AbstractCommand):
-    def __init__(self): 
+    def __init__(self, prop: VillageProperties): 
         super(BuildExitingFieldCommand, self).__init__() 
         self.__browser = Context.browser
+        self.__prop: VillageProperties = prop
 
     def execute(self):
         # start Проверяем необходимость строительства склада или амбара
@@ -97,10 +112,9 @@ class BuildExitingFieldCommand(AbstractCommand):
         if (wood_count >= max_resource or 
             clay_count >= max_resource or 
             iron_count >= max_resource):
-            print ('Необходимо строить склад')
+            self.__prop.setNeedBuildStock()
         elif (corn_count >= int(granary * 0.1)):
-            print ('Необходимо строить амбар')
-        # TODO - надо добавлять параметр для создания задачи строительства амбара или склада - создать команду свойст деревни
+            self.__prop.setNeedBuildGranary()
         # end
 
         field_title = self.__browser.find_element_by_css_selector('.contentContainer > .build > .titleInHeader')
@@ -177,9 +191,9 @@ class BuildNewVillageBuildings(AbstractCommand):
             raise BuildFieldException('Кнопка строительства недоступна', BuildFieldExceptionType.BUILD_BUTTON_UNAVAILABLE)
 
 
-class BuildVillageBuildingCommand(AbstractCommand): 
+class BuildVillageBuildingCommand(AbstractVillageCommand): 
     def __init__(self, type: IndoorBuildingType, lvl: int, vilX: int, vilY: int): 
-        super(BuildVillageBuildingCommand, self).__init__() 
+        super(BuildVillageBuildingCommand, self).__init__(vilX, vilY) 
         self.__type: IndoorBuildingType = type 
         self.__lvl: int = lvl 
         self.__browser = Context.browser 
@@ -205,7 +219,7 @@ class BuildVillageBuildingCommand(AbstractCommand):
             build_command: AbstractCommand = None
             if (selector.isExitingBuilding()):
                 # Увеличиваем уровень здания
-                build_command = BuildExitingFieldCommand()
+                build_command = BuildExitingFieldCommand(self._prop)
             else:
                 # Строим новое здания из окно выбора строений
                 build_command = BuildNewVillageBuildings()
@@ -216,9 +230,9 @@ class BuildVillageBuildingCommand(AbstractCommand):
 
 
 # Строит ресурсное поле
-class AbstractProductionFieldCommand(AbstractCommand):
+class AbstractProductionFieldCommand(AbstractVillageCommand):
     def __init__(self, type: Production, vilX: int, vilY: int): 
-        super(AbstractProductionFieldCommand, self).__init__() 
+        super(AbstractProductionFieldCommand, self).__init__(vilX, vilY) 
         self._type: Production = type 
         self._browser = Context.browser
 
@@ -237,7 +251,7 @@ class AbstractProductionFieldCommand(AbstractCommand):
             # Открываем окно строительства поля
             field.click()
             # Строим в окне строительства
-            BuildExitingFieldCommand().execute()
+            BuildExitingFieldCommand(self._prop).execute()
         except BuildFieldException as err:
             err.accept(BuildFieldExceptionVisitor())
 
@@ -273,11 +287,9 @@ class BuildProductionFieldWithSmallLevelCommand(AbstractProductionFieldCommand):
 
 
 # Команда автоматического строительства ресурсного поля
-class AutoBuildProductionFieldCommand(AbstractCommand):
+class AutoBuildProductionFieldCommand(AbstractVillageCommand):
     def __init__(self, vilX: int, vilY: int): 
-        super(AutoBuildProductionFieldCommand, self).__init__() 
-        self.__coordX = vilX
-        self.__coordY = vilY
+        super(AutoBuildProductionFieldCommand, self).__init__(vilX, vilY)
         self.__browser = Context.browser
         self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY)
         self.__open_resources_command: AbstractCommand = OpenVillageResourcesCommand()
@@ -295,7 +307,7 @@ class AutoBuildProductionFieldCommand(AbstractCommand):
 
             # Строительство ресурсного поля
             buildCommand: AbstractCommand = BuildProductionFieldWithSmallLevelCommand(
-                buildFieldType, self.__coordX, self.__coordY
+                buildFieldType, self._coordX, self._coordY
             )
             buildCommand.execute()
         else:

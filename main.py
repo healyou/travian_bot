@@ -5,11 +5,14 @@ from command.queue.properties import QueueProperties
 from utils.context import Context
 from utils.travian_utils import login_to_account, open_travian
 from village.command.commands import AutoBuildProductionFieldCommand
+from command.queue.properties import QueueProperties
 
 browser = open_travian()
-Context.browser = browser
 try:
     login_to_account(browser)
+    
+    Context.browser = browser
+    Context.queueProperties = QueueProperties(browser)
 
     # thread = BuildThread()
     # thread.start()
