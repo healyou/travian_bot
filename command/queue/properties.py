@@ -1,21 +1,37 @@
-from utils.util import getVillagesCoords
 from collections import namedtuple
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
+
 from utils.context import Context
+from utils.util import getVillagesCoords
 
 
-BuildProperties = namedtuple('BuildProperties', [
+# Свойства строительства в деревне
+@dataclass
+class VillageBuildProperties:
     # Автоматическое строительство ресурсов
-    'auto_build_resources',
+    auto_build_resources: bool = False
     # Время строительства следующего здания
-    'next_build_datetime',
+    next_build_datetime: Any = None
     # Необходимость строительства склада или амбара
     # None - ничего, True - Stock, False - Granary
-    'is_stock_or_granary_build'
-])
-VillageCoord = namedtuple('VillageCoord', [
-    'x', 'y'
-])
+    is_stock_or_granary_build: bool = None
+
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
+
+# Данные деревни
+@dataclass
+class VillageData:
+    prop: VillageBuildProperties
+    point: Point
+
+
 # Параметры задач бота
 class QueueProperties(object):
     def __init__(self, browser):
@@ -24,30 +40,30 @@ class QueueProperties(object):
         villages_coords = getVillagesCoords(browser)
         properties = []
         for (x, y) in villages_coords:
-            properties.append((VillageCoord(x, y), BuildProperties(
-                True, datetime.today(), None
-            )))
+            build_properties = VillageBuildProperties(False, datetime.today(), None)
+            point = Point(x, y)
+            data = VillageData(build_properties, point)
 
+            properties.append(data)
         self.__properties = properties
 
-    def getVillageProperties(self, x, y) -> BuildProperties:
-        for (vil_coord, prop) in self.__properties:
-            if (vil_coord[0] == x and vil_coord[1] == y):
-                return prop
+    def getVillageProperties(self, coord: Point) -> VillageBuildProperties:
+        for data in self.__properties:
+            if (data.point.x == coord.x and data.point.y == coord.y):
+                return data.prop
         raise Exception('Деревня не найдена')
 
-    def setVillageProperties(self, x, y, prop):
-        for value in self.__properties:
-            if (value[0][0] == x and value[0][1] == y):
-                # TODO - нельзя изменять кортежи - поменять на классы
-                value[1] = prop
+    def setVillageProperties(self, coord: Point, prop: VillageBuildProperties):
+        for data in self.__properties:
+            if (data.point.x == coord.x and data.point.y == coord.y):
+                data.prop = prop
                 print ('Свойства изменены')
         raise Exception('Деревня не найдена')
     
-    def getNextBuildTime(self, x, y):
-        for (vil_coord, prop) in self.__properties:
-            if (vil_coord[0] == x and vil_coord[1] == y):
-                return prop.next_build_time
+    def getNextBuildTime(self, x: int, y: int):
+        for data in self.__properties:
+            if (data.point.x == x and data.point.y == y):
+                return data.prop.next_build_time
         raise Exception('Деревня не найдена')
 
 
@@ -55,7 +71,7 @@ class QueueProperties(object):
 class VillageProperties(object):
     def __init__(self, coordX, coordY):
         super(VillageProperties, self).__init__()
-        self.__coord = VillageCoord(coordX, coordY)
+        self.__coord: Point = Point(coordX, coordY)
         self.__queue_prop: QueueProperties = Context.queueProperties
 
     def setNeedBuildStock(self):
@@ -69,13 +85,9 @@ class VillageProperties(object):
     # None - ничего, True - Stock, False - Granary
     def __setStockOrGranaryBuild(self, value: bool):
         prop = self.__queue_prop
-        # TODO - изменить на св-ва 
-        vil_prop = prop.getVillageProperties(self.__coord[0], self.__coord[1])
-        new_prop = BuildProperties(vil_prop[0], vil_prop[1], value)
-        prop.setVillageProperties(self.__coord[0], self.__coord[1], new_prop)
-
-        vil_prop = prop.getVillageProperties(self.__coord[0], self.__coord[1])
-        k = 1
+        vil_prop: VillageBuildProperties = prop.getVillageProperties(self.__coord)
+        # Изменить свойство и в начальном объекте (одна область памяти)
+        vil_prop.is_stock_or_granary_build = value
 
 # TODO - добавить очередь на строительство в деревни
 # TODO 2) Когда стоимость строительства поля на 60% превысила лимит склада - развиваем склад (но не более 80000 вместимости склада)
