@@ -59,9 +59,6 @@ class OpenVillageBuildingsCommand(AbstractCommand):
         command = creator.createCommand()
         command.execute()
 
-# TODO - надо создать класс команд, которые знает свойства деревни
-# TODO QueueProperties (все св-ва) -> VilPropClass (знает о св-ах деревни) <- VillageCommand (команда)
-# TODO Так любая команда работы с деревней сможет сохранять и записывать данные
 
 # Открывает страницу выбранной деревни
 class OpenVillageCommand(AbstractCommand):

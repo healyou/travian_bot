@@ -1,8 +1,9 @@
-from collections import namedtuple
+from collections import deque, namedtuple
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from command.commands import AbstractCommand
 from utils.context import Context
 from utils.util import getVillagesCoords
 
@@ -46,23 +47,42 @@ class QueueProperties(object):
 
             properties.append(data)
         self.__properties = properties
+        # Очередь выполнения команд строительства
+        self.__build_commands_deque = deque()
+
+    def analizeBuildings(self):
+        deque = self.__build_commands_deque
+        from village.command.commands import AutoBuildProductionFieldCommand
+        command = AutoBuildProductionFieldCommand(51, 91)
+        deque.append(command)
+        # TODO добавление команд для выполнения
+
+    def getNextBuildingCommand(self) -> AbstractCommand:
+        deque = self.__build_commands_deque
+        if (len(deque) > 0):
+            return self.__build_commands_deque.popleft()
+        else:
+            return None
 
     def getVillageProperties(self, coord: Point) -> VillageBuildProperties:
         for data in self.__properties:
-            if (data.point.x == coord.x and data.point.y == coord.y):
+            vil_coord = data.point
+            if (vil_coord.x == coord.x and vil_coord.y == coord.y):
                 return data.prop
         raise Exception('Деревня не найдена')
 
     def setVillageProperties(self, coord: Point, prop: VillageBuildProperties):
         for data in self.__properties:
-            if (data.point.x == coord.x and data.point.y == coord.y):
+            vil_coord = data.point
+            if (vil_coord.x == coord.x and vil_coord.y == coord.y):
                 data.prop = prop
                 print ('Свойства изменены')
         raise Exception('Деревня не найдена')
     
     def getNextBuildTime(self, x: int, y: int):
         for data in self.__properties:
-            if (data.point.x == x and data.point.y == y):
+            vil_coord = data.point
+            if (vil_coord.x == x and vil_coord.y == y):
                 return data.prop.next_build_time
         raise Exception('Деревня не найдена')
 
@@ -90,5 +110,4 @@ class VillageProperties(object):
         vil_prop.is_stock_or_granary_build = value
 
 # TODO - добавить очередь на строительство в деревни
-# TODO 2) Когда стоимость строительства поля на 60% превысила лимит склада - развиваем склад (но не более 80000 вместимости склада)
 # TODO 3) Строить по времени строительства след. здания - если ничего не строится - строим здание и запоминаем время окончания для деревни

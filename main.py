@@ -4,8 +4,6 @@ from command.queue.buildthread import BuildThread
 from command.queue.properties import QueueProperties
 from utils.context import Context
 from utils.travian_utils import login_to_account, open_travian
-from village.command.commands import AutoBuildProductionFieldCommand
-from command.queue.properties import QueueProperties
 
 browser = open_travian()
 try:
@@ -14,21 +12,8 @@ try:
     Context.browser = browser
     Context.queueProperties = QueueProperties(browser)
 
-    # thread = BuildThread()
-    # thread.start()
-
-    # time.sleep(30)
-
-    # prop = QueueProperties(browser)
-    # props = prop.getVillageProperties(51, 91)
-    # k = 1
-
-    command = AutoBuildProductionFieldCommand(51, 91)
-    command.execute()
-
-    # build = BuildProductionFieldCommand(Production.CORN, 7, 51, 91)
-    # build = BuildVillageBuildingCommand(IndoorBuildingType.WORKSHOP, 7, 51, 91)
-    # build.execute()
+    thread = BuildThread(Context.queueProperties)
+    thread.run()
 
 except OSError as err:
     print('Ошибка работы скрипта')
