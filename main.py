@@ -13,7 +13,10 @@ try:
     Context.queueProperties = QueueProperties(browser)
 
     thread = BuildThread(Context.queueProperties)
-    thread.run()
+    thread.start()
+
+    thread.stop()
+    thread.join()
 
 except OSError as err:
     print('Ошибка работы скрипта')
