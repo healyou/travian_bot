@@ -1,5 +1,6 @@
 import operator
 from abc import abstractmethod
+from typing import List
 
 from element.elements import BaseElement
 from selector.selectors import IdSelector
@@ -35,6 +36,33 @@ class CurrentVillageAnalazer(AbstractVillage):
         self.__analyzeProperties()
         return self.__searchNextBuildResourceType()
 
+    # Строится ли уже какое-то здание
+    def isFieldBuilding(self) -> bool:
+        times = self.__getCurrentBuildTimes()
+        if (len(times) > 0):
+            return True
+        else:
+            return False
+
+    # Получить время до окончания строительства всех зданий
+    def getSecondsToEndBuildFields(self) -> int:
+        times = self.__getCurrentBuildTimes()
+        if (len(times) > 0):
+            times.sort()
+            return times[0]
+        else:
+            return 0
+
+    # Список секунд на строительства всех зданий
+    def __getCurrentBuildTimes(self) -> List[int]:
+        # Текущее строительство и время до его завершения
+        fields = self.browser.find_elements_by_css_selector('div[class=\'buildDuration\'] > span')
+        times = []
+        for field in fields:
+            time = int(field.get_attribute('value'))
+            times.append(time)
+        return times
+
     def __searchNextBuildResourceType(self) -> Production:
         build_prod_types = dict((k,self.production[k]) for k in Production if k in self.production)
 
@@ -44,17 +72,6 @@ class CurrentVillageAnalazer(AbstractVillage):
 
         sorted_types = sorted(build_prod_types.items(), key=operator.itemgetter(1))
         return sorted_types[0][0]
-
-    # Строится ли уже какое-то здание
-    def isFieldBuilding(self) -> bool:
-        # Текущее строительство и время до его завершения
-        fields = self.browser.find_elements_by_css_selector('div[class=\'buildDuration\'] > span')
-        if (len(fields) > 0):
-            for field in fields:
-                print ('Здание ещё строится ' + field.get_attribute('value') + ' сек')
-            return True
-        else:
-            return False
 
     def __analyzeProperties(self):
         self.warehouse = self.__getStockBarParameter('stockBarWarehouse')

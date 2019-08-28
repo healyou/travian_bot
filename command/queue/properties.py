@@ -12,12 +12,12 @@ from utils.util import getVillagesCoords
 @dataclass
 class VillageBuildProperties:
     # Автоматическое строительство ресурсов
-    auto_build_resources: bool = False
+    auto_build_resources: bool
     # Время строительства следующего здания
-    next_build_datetime: Any = None
+    next_build_datetime: datetime
     # Необходимость строительства склада или амбара
     # None - ничего, True - Stock, False - Granary
-    is_stock_or_granary_build: bool = None
+    is_stock_or_granary_build: bool
 
 
 @dataclass
@@ -41,7 +41,7 @@ class QueueProperties(object):
         villages_coords = getVillagesCoords(browser)
         properties = []
         for (x, y) in villages_coords:
-            build_properties = VillageBuildProperties(False, datetime.today(), None)
+            build_properties = VillageBuildProperties(True, datetime.today(), None)
             point = Point(x, y)
             data = VillageData(build_properties, point)
 
@@ -50,17 +50,26 @@ class QueueProperties(object):
         # Очередь выполнения команд строительства
         self.__build_commands_deque = deque()
 
-    def analizeBuildings(self):
+    def analizeAutoBuildForAllVillages(self):
         deque = self.__build_commands_deque
         from village.command.commands import AutoBuildProductionFieldCommand
-        command = AutoBuildProductionFieldCommand(51, 91)
-        deque.append(command)
-        # TODO добавление команд для выполнения
+
+        for vil_data in self.__properties:
+            build_prop: VillageBuildProperties = vil_data.prop
+            if (not build_prop.auto_build_resources):
+                continue
+
+            next_build_dt: datetime = build_prop.next_build_datetime
+            if (next_build_dt <= datetime.now()):
+                coord: Point = vil_data.point
+                command = AutoBuildProductionFieldCommand(coord.x, coord.y)
+                deque.append(command)
 
     def getNextBuildingCommand(self) -> AbstractCommand:
         deque = self.__build_commands_deque
         if (len(deque) > 0):
-            return self.__build_commands_deque.popleft()
+            command = self.__build_commands_deque.popleft()
+            return command
         else:
             return None
 
@@ -102,12 +111,20 @@ class VillageProperties(object):
         print ('Необходимо строить амбар')
         self.__setStockOrGranaryBuild(False)
 
+    def setNextBuildDatetime(self, dt: datetime):
+        vil_prop: VillageBuildProperties = self.__getVillageProperties()
+        # Изменить свойство и в начальном объекте (одна область памяти)
+        vil_prop.next_build_datetime = dt
+
     # None - ничего, True - Stock, False - Granary
     def __setStockOrGranaryBuild(self, value: bool):
-        prop = self.__queue_prop
-        vil_prop: VillageBuildProperties = prop.getVillageProperties(self.__coord)
+        vil_prop: VillageBuildProperties = self.__getVillageProperties()
         # Изменить свойство и в начальном объекте (одна область памяти)
         vil_prop.is_stock_or_granary_build = value
+
+    def __getVillageProperties(self) -> VillageBuildProperties:
+        prop = self.__queue_prop
+        return prop.getVillageProperties(self.__coord)
 
 # TODO - добавить очередь на строительство в деревни
 # TODO 3) Строить по времени строительства след. здания - если ничего не строится - строим здание и запоминаем время окончания для деревни

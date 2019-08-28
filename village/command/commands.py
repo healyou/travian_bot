@@ -1,6 +1,7 @@
 import re
 from abc import abstractmethod
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
+from datetime import datetime, timedelta
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -298,7 +299,7 @@ class AutoBuildProductionFieldCommand(AbstractVillageCommand):
         # Открываем вкладку ресурсов деревни
         self.__open_resources_command.execute()
 
-        if (self.__analizer.isFieldBuilding()):
+        if (not self.__analizer.isFieldBuilding()):
             # Ищем тип ресурсного поля, которое надо построить
             buildFieldType: Production = self.__analizer.getNextBuildFieldType()
 
@@ -308,4 +309,10 @@ class AutoBuildProductionFieldCommand(AbstractVillageCommand):
             )
             buildCommand.execute()
         else:
-            raise BuildFieldException('Уже идёт строительство здания', BuildFieldExceptionType.ALREADY_BUILD)
+            # Устанавливаем время для след. строительства данной деревни
+            time_to_build_field: int = self.__analizer.getSecondsToEndBuildFields()
+            next_build_datetime = datetime.now() + timedelta(seconds=time_to_build_field)
+            self._prop.setNextBuildDatetime(next_build_datetime)
+
+            # TODO - надо try catch в месте выполнения команд
+            # raise BuildFieldException('Уже идёт строительство здания', BuildFieldExceptionType.ALREADY_BUILD)

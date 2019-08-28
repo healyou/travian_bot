@@ -14,8 +14,6 @@ try:
 
     thread = BuildThread(Context.queueProperties)
     thread.start()
-
-    thread.stop()
     thread.join()
 
 except OSError as err:
