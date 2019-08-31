@@ -52,16 +52,33 @@ class QueueProperties(object):
 
     def analizeAutoBuildForAllVillages(self):
         deque = self.__build_commands_deque
-        from village.command.commands import AutoBuildProductionFieldCommand
+        from village.command.commands import AutoBuildProductionFieldCommand, BuildVillageBuildingCommand
+        from village.types import IndoorBuildingType
 
         for vil_data in self.__properties:
             build_prop: VillageBuildProperties = vil_data.prop
+            coord: Point = vil_data.point
+
+            # Необходимость автоматического строительства ресурсов
             if (not build_prop.auto_build_resources):
                 continue
 
+            # Необходимость строить склад или амбар
+            if(build_prop.is_stock_or_granary_build is not None):
+                # True - Stock, False - Granary
+                if (build_prop.is_stock_or_granary_build):
+                    command = BuildVillageBuildingCommand(IndoorBuildingType.STOCK, coord.x, coord.y)
+                    build_prop.is_stock_or_granary_build = None
+                else:
+                    command = BuildVillageBuildingCommand(IndoorBuildingType.GRANARY, coord.x, coord.y)
+                    build_prop.is_stock_or_granary_build = None
+                    
+                deque.append(command)
+                continue
+
+            # Автоматическое строительство ресурсов
             next_build_dt: datetime = build_prop.next_build_datetime
             if (next_build_dt <= datetime.now()):
-                coord: Point = vil_data.point
                 command = AutoBuildProductionFieldCommand(coord.x, coord.y)
                 deque.append(command)
 

@@ -97,6 +97,29 @@ class IndoorBuildingTypeSearchNameVisitor(IndoorBuildingTypeVisitor):
         return 'Мастерская'
 
 
+# Вернёт True для полей, которых можно построить несколько
+class IsMultipleBuildFieldVisitor(IndoorBuildingTypeVisitor):
+    @abstractmethod
+    def visitStock(self):
+        return True
+
+    @abstractmethod
+    def visitGranary(self):
+        return True
+
+    @abstractmethod
+    def visitResidence(self):
+        return False
+
+    @abstractmethod
+    def visitHedge(self):
+        return False
+
+    @abstractmethod
+    def visitWorkshop(self):
+        return False
+
+
 # Поиск кнопки строительства нового здания в зависимости от типа строения
 class BuildButtonNewIndoorVisitor(NewIndoorBuildingTypeVisitor):
     def __init__(self, browser, buildingName: str):

@@ -190,15 +190,14 @@ class BuildNewVillageBuildings(AbstractCommand):
 
 
 class BuildVillageBuildingCommand(AbstractVillageCommand): 
-    def __init__(self, type: IndoorBuildingType, lvl: int, vilX: int, vilY: int): 
+    def __init__(self, type: IndoorBuildingType, vilX: int, vilY: int): 
         super(BuildVillageBuildingCommand, self).__init__(vilX, vilY) 
         self.__type: IndoorBuildingType = type 
-        self.__lvl: int = lvl 
         self.__browser = Context.browser 
         self.__open_vil_command: AbstractCommand = OpenVillageCommand(vilX, vilY) 
         self.__open_vil_buildings_command: AbstractCommand = OpenVillageBuildingsCommand() 
     
-    def execute(self): 
+    def execute(self):
         self.__open_vil_command.execute() 
         self.__open_vil_buildings_command.execute() 
         self.__buildField() 
@@ -207,12 +206,11 @@ class BuildVillageBuildingCommand(AbstractVillageCommand):
         try: 
             # Находим нужное поле 
             browser = Context.browser 
-            selector = IndoorBuildingSelector(browser, self.__type, self.__lvl) 
+            selector = IndoorBuildingSelector(browser, self.__type) 
             selector.findElement()
 
             # Открываем окно строительства
             selector.clickToElement()
-            name = selector.getFieldName()
 
             build_command: AbstractCommand = None
             if (selector.isExitingBuilding()):
