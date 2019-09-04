@@ -6,7 +6,7 @@ from command.commands import AbstractCommand
 
 # Поток, запускающий выполнение функции через каждый n секунд после очередного запуска
 class BuildThread(threading.Thread):
-    RERUN_SECONDS = 5
+    RERUN_SECONDS = 15
 
     def __init__(self, properties: QueueProperties):
         super(BuildThread, self).__init__()
@@ -44,11 +44,10 @@ class BuildThread(threading.Thread):
 
         while command is not None:
             print ('Выполнение команды в потоке')
-            command.execute()
-            command = self.__properties.getNextBuildingCommand()
-        print ('Все команды в текущем цикле постройки выполнены')
+            try:
+                command.execute()
+                command = self.__properties.getNextBuildingCommand()
+            except Exception as err:
+                print ('Непредвиденная ошибка выполнения команды - ' + str(err))
 
-# TODO - добавить сюда следующее
-# TODO 1)Выполнение строительства полей
-# TODO 2)Анализ переполнения складов и амбаров
-# TODO 3)Анализ времени для запуска следующего строительства здания
+        print ('Все команды в текущем цикле постройки выполнены')

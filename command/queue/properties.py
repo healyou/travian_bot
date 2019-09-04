@@ -142,6 +142,3 @@ class VillageProperties(object):
     def __getVillageProperties(self) -> VillageBuildProperties:
         prop = self.__queue_prop
         return prop.getVillageProperties(self.__coord)
-
-# TODO - добавить очередь на строительство в деревни
-# TODO 3) Строить по времени строительства след. здания - если ничего не строится - строим здание и запоминаем время окончания для деревни

@@ -120,7 +120,7 @@ class IndoorBuildingSelector(AbstractSelector):
             for child in child_elems:
                 parent_text = parent_text.replace(child.text, '')
 
-            # TODO Наводим на далеко расположенный item - почему-то без этого не всегда срабатывает hover элемента
+            # Наводим на далеко расположенный item - почему-то без этого не всегда срабатывает hover элемента
             hover_item = browser.find_element_by_css_selector('button#heroImageButton')
             hover = ActionChains(browser).move_to_element(hover_item)
             hover.perform()

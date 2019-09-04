@@ -48,7 +48,7 @@ class CurrentVillageAnalazer(AbstractVillage):
     def getSecondsToEndBuildFields(self) -> int:
         times = self.__getCurrentBuildTimes()
         if (len(times) > 0):
-            times.sort()
+            times.sort(reverse=True)
             return times[0]
         else:
             return 0

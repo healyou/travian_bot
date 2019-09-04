@@ -284,6 +284,9 @@ class BuildProductionFieldWithSmallLevelCommand(AbstractProductionFieldCommand):
 
 # Команда автоматического строительства ресурсного поля
 class AutoBuildProductionFieldCommand(AbstractVillageCommand):
+    # Время ожидания в секундах после окончания строительства здания (чтобы интерфейс точно обновился)
+    WAIT_SECONDS_AFTER_LAST_BUILD_FIELD = 30
+
     def __init__(self, vilX: int, vilY: int): 
         super(AutoBuildProductionFieldCommand, self).__init__(vilX, vilY)
         self.__browser = Context.browser
@@ -308,9 +311,8 @@ class AutoBuildProductionFieldCommand(AbstractVillageCommand):
             buildCommand.execute()
         else:
             # Устанавливаем время для след. строительства данной деревни
-            time_to_build_field: int = self.__analizer.getSecondsToEndBuildFields()
-            next_build_datetime = datetime.now() + timedelta(seconds=time_to_build_field)
+            time_to_build_current_field: int = self.__analizer.getSecondsToEndBuildFields()
+            wait_to_next_build_seconds = time_to_build_current_field + WAIT_SECONDS_AFTER_LAST_BUILD_FIELD
+            next_build_datetime = datetime.now() + timedelta(seconds=wait_to_next_build_seconds)
             self._prop.setNextBuildDatetime(next_build_datetime)
-
-            # TODO - надо try catch в месте выполнения команд
-            # raise BuildFieldException('Уже идёт строительство здания', BuildFieldExceptionType.ALREADY_BUILD)
+            print ('Уже идёт строительство здания - установлено время след. строительства = ' + str(next_build_datetime))
