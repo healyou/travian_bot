@@ -6,7 +6,7 @@ from tkinter import *
 from command.queue.buildthread import BuildThread
 from command.queue.properties import QueueProperties
 from utils.context import Context
-from utils.travian_utils import login_to_account, open_travian
+from utils.travian_utils import login_to_account, open_travian, create_browser
 
 
 class dFrame(Frame):
@@ -29,9 +29,12 @@ class dFrame(Frame):
 class View(IView):
     def __init__(self): 
         super(View, self).__init__()
-        self.root = Tk()
+        self.root: Tk = Tk()
         self.root.title("GUI на Python")
         self.root.geometry("640x480")
+
+        self.root.protocol("WM_DELETE_WINDOW", self.onQuit)
+        self.root.bind("<Destroy>", self.onDestroy)
 
         self.main_frame = dFrame(self.root)
 
@@ -77,24 +80,45 @@ class View(IView):
     def mainloop(self):
         self.root.mainloop()
 
+    def onQuit(self):
+        print ('onQuit')
+        if (Context.browser is not None):
+            Context.browser.quit()
+
+            Context.browser = None
+            Context.queueProperties = None
+            Context.buildCornOnError = True
+        self.root.destroy()
+
+    def onDestroy(self, event):
+        pass
+        # Вызывается каждый раз, когда удаляется компонент в иерархии(все дочерние)
+        # print ('onDestroy')
+
     def authorization(self):
         self.main_frame.disable()
 
-        browser = open_travian()
         try:
+            browser = create_browser()
+            Context.browser = browser
+
+            open_travian(browser)
             login_to_account(browser)
             
-            Context.browser = browser
             Context.queueProperties = QueueProperties(browser)
 
-        except OSError as err:
+        except Exception as err:
             print('Ошибка работы скрипта')
-        finally:
-            for widget in self.main_frame.winfo_children():
-                widget.destroy()
             time.sleep(5)
             print('Завершение работы скрипта')
             browser.quit()
+
+            Context.browser = None
+            Context.queueProperties = None
+            Context.buildCornOnError = True
+        finally:
+            for widget in self.main_frame.winfo_children():
+                widget.destroy()
         
         self.main_frame.enable()
         self.setupVillageInfoFrame()
