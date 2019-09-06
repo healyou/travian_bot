@@ -32,7 +32,8 @@ class VerticalScrolledFrame:
 
         self.inner = tk.Frame(self.canvas, bg=bg)
         # pack the inner Frame into the Canvas with the topleft corner 4 pixels offset
-        self.canvas.create_window(4, 4, window=self.inner, anchor='nw')
+        window_width = width - 40
+        self.canvas.create_window(4, 4, window=self.inner, anchor='nw', width=window_width)
         self.inner.bind("<Configure>", self._on_frame_configure)
 
         self.outer_attr = set(dir(tk.Widget))

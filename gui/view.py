@@ -127,15 +127,20 @@ class View(IView):
 
 
     def setupVillageInfoFrame(self):
-        villages_properties_frame = VerticalScrolledFrame(self.main_frame)
-        villages_properties_frame.pack(fill=BOTH, expand=YES)
+        width = 640
+        height = 480
+        villages_properties_frame = VerticalScrolledFrame(
+            self.main_frame,
+            width=width,
+            height=height
+        )
 
         info_frame = Frame(villages_properties_frame)
         info_label = Label(master=info_frame, text='Настройка параметров работы бота')
-        info_label.pack(fill='x')
+        info_label.pack()
         start_button = Button(master=info_frame, text='Начать работу бота', command=self.startBotWork)
         start_button.pack(fill='x')
-        info_frame.pack(fill='x', expand=YES)
+        info_frame.pack(side='top', fill='x')
 
         props_frame = Frame(villages_properties_frame)
         villages_info = getVillagesInfo(Context.browser)
@@ -143,16 +148,17 @@ class View(IView):
             vil_prop_frame = Frame(props_frame)
 
             info_label = info.name + ' :(' + str(info.point.x) + '|' + str(info.point.y) + ')'
-            vil_info_label = Label(master=info_frame, text=info_label)
-            vil_info_label.pack(side='left', fill=BOTH, expand=YES)
+            vil_info_label = Label(master=vil_prop_frame, text=info_label)
+            vil_info_label.pack(side='left')
 
             auto_build_var = IntVar()
             auto_build_var.set(Context.queueProperties.getVillageProps(info.point.x, info.point.y).auto_build_resources)
-            Checkbutton(vil_prop_frame, text='Автоматическое стр-во ресурсов в деревне', variable=auto_build_var).pack(side='left')
+            Checkbutton(vil_prop_frame, text='Автоматическое стр-во ресурсов в деревне', variable=auto_build_var).pack(side='left', fill='x')
 
-            vil_prop_frame.pack(side='top', fill=BOTH, expand=YES)
-
-        props_frame.pack(side='top', fill=BOTH, expand=YES)
+            vil_prop_frame.pack(side='top', fill='x')
+        props_frame.pack(side='top', fill=BOTH)
+        
+        villages_properties_frame.pack(fill=BOTH, expand=YES)
         self.main_frame.pack(fill=BOTH, expand=YES)
 
     def startBotWork(self):
