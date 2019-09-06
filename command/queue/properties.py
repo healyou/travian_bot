@@ -33,6 +33,13 @@ class VillageData:
     point: Point
 
 
+# TODO - вынести в другое место
+@dataclass
+class VillageInfo:
+    name: str
+    point: Point
+
+
 # Параметры задач бота
 class QueueProperties(object):
     def __init__(self, browser):
@@ -89,6 +96,9 @@ class QueueProperties(object):
             return command
         else:
             return None
+
+    def getVillageProps(self, coordX: int, coordY: int) -> VillageBuildProperties:
+        return self.getVillageProperties(Point(coordX, coordY))
 
     def getVillageProperties(self, coord: Point) -> VillageBuildProperties:
         for data in self.__properties:
