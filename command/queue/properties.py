@@ -1,43 +1,11 @@
 from collections import deque, namedtuple
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
 from command.commands import AbstractCommand
 from utils.context import Context
 from utils.util import getVillagesCoords
-
-
-# Свойства строительства в деревне
-@dataclass
-class VillageBuildProperties:
-    # Автоматическое строительство ресурсов
-    auto_build_resources: bool
-    # Время строительства следующего здания
-    next_build_datetime: datetime
-    # Необходимость строительства склада или амбара
-    # None - ничего, True - Stock, False - Granary
-    is_stock_or_granary_build: bool
-
-
-@dataclass
-class Point:
-    x: int
-    y: int
-
-
-# Данные деревни
-@dataclass
-class VillageData:
-    prop: VillageBuildProperties
-    point: Point
-
-
-# TODO - вынести в другое место
-@dataclass
-class VillageInfo:
-    name: str
-    point: Point
+from command.queue.dataclasses import *
 
 
 # Параметры задач бота

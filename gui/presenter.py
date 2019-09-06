@@ -5,6 +5,7 @@ from command.queue.properties import QueueProperties
 from utils.context import Context
 from utils.travian_utils import login_to_account, open_travian, create_browser
 from utils.util import getVillagesInfo
+from command.queue.dataclasses import *
 
 
 # TODO - надо переписать на rest сервис, т.к. потом этот класс
@@ -29,8 +30,15 @@ class Presenter(IPresenter):
             Context.queueProperties = QueueProperties(browser)
 
             self.__view.enableWindow()
-            # TODO - передача дефолтных параметров
-            self.__view.showVillagePropertiesWindow([])
+            
+
+            villages_build_info = []
+            for vil_info in getVillagesInfo(browser):
+                info: VillageInfo = vil_info
+                build_info: BuildVillageInfo = BuildVillageInfo(info, True)
+                villages_build_info.append(build_info)
+
+            self.__view.showVillagePropertiesWindow(BuildProperties(villages_build_info))
 
         except Exception as err:
             print (str(err))
@@ -45,7 +53,7 @@ class Presenter(IPresenter):
 
             self.__view.enableWindow()
     
-    def startWork(self, properties):
+    def startWork(self, properties: BuildProperties):
         print ('Начало работы бота')
         if (self.__build_thread is not None):
             raise Exception('Поток строительства уже запущен')

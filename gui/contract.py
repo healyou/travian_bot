@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from command.queue.dataclasses import *
 
 
 class IView(object):
@@ -10,7 +11,7 @@ class IView(object):
     # Отобразить страницу ввода параметров работы бота
     # Начальные настройки параметров работы бота
     @abstractmethod
-    def showVillagePropertiesWindow(self, default_properties):
+    def showVillagePropertiesWindow(self, default_properties: BuildProperties):
         pass
 
     # Отобразить страницу работы бота
@@ -42,7 +43,7 @@ class IPresenter(object):
     # Начало работы бота
     # properties - параметры работы бота для каждой из деревень
     @abstractmethod
-    def startWork(self, properties):
+    def startWork(self, properties: BuildProperties):
         pass
 
     # Завершение работы бота

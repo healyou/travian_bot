@@ -11,6 +11,7 @@ from utils.travian_utils import login_to_account, open_travian, create_browser
 from utils.util import getVillagesInfo
 from gui.scrolled_view import VerticalScrolledFrame
 from gui.disable_frame import dFrame
+from command.queue.dataclasses import *
 
 
 class View(IView):
@@ -24,6 +25,9 @@ class View(IView):
         self.main_frame = dFrame(self.root)
 
         self.__presenter: IPresenter = Presenter(self)
+
+        self.__build_properties: BuildProperties = None
+        self.__auto_build_vars: list = None
     
     def mainloop(self):
         self.showLoginWindow()
@@ -41,8 +45,10 @@ class View(IView):
         self.__presenter.login('', '', '')
 
     def startBotWork(self):
-        # TODO - передача параметров строительства
-        self.__presenter.startWork([])
+        for index, item in enumerate(self.__auto_build_vars):
+            self.__build_properties.info_list[index].auto_build_res = bool(item.get())
+
+        self.__presenter.startWork(self.__build_properties)
 
     def stopBotWork(self):
         self.__presenter.stopWork()
@@ -89,7 +95,9 @@ class View(IView):
 
         self.main_frame.pack(fill=BOTH, expand=YES)
 
-    def showVillagePropertiesWindow(self, default_properties):
+    def showVillagePropertiesWindow(self, default_properties: BuildProperties):
+        self.__build_properties = default_properties
+
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
@@ -110,17 +118,25 @@ class View(IView):
         info_frame.pack(side='top', fill='x')
 
         props_frame = Frame(villages_properties_frame)
-        villages_info = getVillagesInfo(Context.browser)
-        for info in villages_info:
+        self.__auto_build_vars = []
+        for info in default_properties.info_list:
+            build_info: BuildVillageInfo = info
             vil_prop_frame = Frame(props_frame)
 
-            info_label = info.name + ' :(' + str(info.point.x) + '|' + str(info.point.y) + ')'
+            info_label = build_info.info.name + ' :(' + str(build_info.info.point.x) + '|' + str(build_info.info.point.y) + ')'
             vil_info_label = Label(master=vil_prop_frame, text=info_label)
             vil_info_label.pack(side='left')
 
             auto_build_var = IntVar()
-            auto_build_var.set(Context.queueProperties.getVillageProps(info.point.x, info.point.y).auto_build_resources)
-            Checkbutton(vil_prop_frame, text='Автоматическое стр-во ресурсов в деревне', variable=auto_build_var).pack(side='left', fill='x')
+            # TODO - почему-то не работает установка значений
+            auto_build_var.set(int(build_info.auto_build_res))
+            button = Checkbutton(
+                vil_prop_frame, 
+                text='Автоматическое стр-во ресурсов в деревне', 
+                variable=auto_build_var
+            )
+            self.__auto_build_vars.append(auto_build_var)
+            button.pack(side='left', fill='x')
 
             vil_prop_frame.pack(side='top', fill='x')
         props_frame.pack(side='top', fill=BOTH)
