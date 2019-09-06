@@ -23,6 +23,11 @@ class BuildThread(threading.Thread):
         return self.__stop.isSet()
 
     def run(self):
+        while not self.isStopped():
+            time.sleep(5)
+        print('завершение потока работы')
+        return
+
         # Первый раз запускаем сразу
         print ('Запуск цикла постройки полей в потоке')
         threading.Thread(target=self.build, daemon=True).run()

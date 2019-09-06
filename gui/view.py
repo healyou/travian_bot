@@ -1,4 +1,5 @@
-from gui.contract import IView
+from gui.contract import IView, IPresenter
+from gui.presenter import Presenter
 
 import time
 from tkinter import *
@@ -9,24 +10,8 @@ from utils.context import Context
 from utils.travian_utils import login_to_account, open_travian, create_browser
 from utils.util import getVillagesInfo
 from gui.scrolled_view import VerticalScrolledFrame
+from gui.disable_frame import dFrame
 
-
-class dFrame(Frame):
-    def enable(self, state='!disabled'):
-        def cstate(widget):
-            # Is this widget a container?
-            if widget.winfo_children:
-                # It's a container, so iterate through its children
-                for w in widget.winfo_children():
-                    # change its state
-                    w.state((state,))
-                    # and then recurse to process ITS children
-                    cstate(w)
-
-            cstate(self)
-
-    def disable(self):
-        self.enable('disabled')
 
 class View(IView):
     def __init__(self): 
@@ -34,12 +19,37 @@ class View(IView):
         self.root: Tk = Tk()
         self.root.title("GUI на Python")
         self.root.geometry("640x480")
-
         self.root.protocol("WM_DELETE_WINDOW", self.onQuit)
         self.root.bind("<Destroy>", self.onDestroy)
-
         self.main_frame = dFrame(self.root)
 
+        self.__presenter: IPresenter = Presenter(self)
+    
+    def mainloop(self):
+        self.showLoginWindow()
+        self.root.mainloop()
+
+    def onQuit(self):
+        self.__presenter.quit()
+
+    def onDestroy(self, event):
+        pass
+        # Вызывается каждый раз, когда удаляется компонент в иерархии(все дочерние)
+        # print ('onDestroy')
+
+    def authorization(self):
+        self.__presenter.login('', '', '')
+
+    def startBotWork(self):
+        # TODO - передача параметров строительства
+        self.__presenter.startWork([])
+
+    def stopBotWork(self):
+        self.__presenter.stopWork()
+
+    def showLoginWindow(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
 
         server_frame = Frame(self.main_frame)
         server_label = Label(master=server_frame, text='Сервер')
@@ -78,55 +88,12 @@ class View(IView):
         message_button.pack(side="top", fill="x")
 
         self.main_frame.pack(fill=BOTH, expand=YES)
-    
-    def mainloop(self):
-        self.root.mainloop()
 
-    def onQuit(self):
-        print ('onQuit')
-        if (Context.browser is not None):
-            Context.browser.quit()
+    def showVillagePropertiesWindow(self, default_properties):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
 
-            Context.browser = None
-            Context.queueProperties = None
-            Context.buildCornOnError = True
-        self.root.destroy()
-
-    def onDestroy(self, event):
-        pass
-        # Вызывается каждый раз, когда удаляется компонент в иерархии(все дочерние)
-        # print ('onDestroy')
-
-    def authorization(self):
-        self.main_frame.disable()
-
-        try:
-            browser = create_browser()
-            Context.browser = browser
-
-            open_travian(browser)
-            login_to_account(browser)
-            
-            Context.queueProperties = QueueProperties(browser)
-
-            self.main_frame.enable()
-            for widget in self.main_frame.winfo_children():
-                widget.destroy()
-            self.setupVillageInfoFrame()
-
-        except Exception as err:
-            print (str(err))
-            print('Ошибка работы скрипта')
-            time.sleep(5)
-            print('Завершение работы скрипта')
-            browser.quit()
-
-            Context.browser = None
-            Context.queueProperties = None
-            Context.buildCornOnError = True
-
-
-    def setupVillageInfoFrame(self):
+        # TODO - use default_properties
         width = 640
         height = 480
         villages_properties_frame = VerticalScrolledFrame(
@@ -161,5 +128,24 @@ class View(IView):
         villages_properties_frame.pack(fill=BOTH, expand=YES)
         self.main_frame.pack(fill=BOTH, expand=YES)
 
-    def startBotWork(self):
-        print ('Начало работы бота')
+    def showBotWorkingWindow(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+        server_frame = Frame(self.main_frame)
+        server_label = Label(master=server_frame, text='Лог работа бота')
+        server_label.pack(side="left")
+
+        message_button = Button(master=self.main_frame, text='Завершить работу', command=self.stopBotWork)
+        message_button.pack(side="top", fill="x")
+
+        self.main_frame.pack(fill=BOTH, expand=YES)
+
+    def disableWindow(self):
+        self.main_frame.disable()
+
+    def enableWindow(self):
+        self.main_frame.enable()
+
+    def quit(self):
+        self.root.destroy()
