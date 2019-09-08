@@ -101,7 +101,6 @@ class View(IView):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        # TODO - use default_properties
         width = 640
         height = 480
         villages_properties_frame = VerticalScrolledFrame(
@@ -128,7 +127,6 @@ class View(IView):
             vil_info_label.pack(side='left')
 
             auto_build_var = IntVar()
-            # TODO - почему-то не работает установка значений
             auto_build_var.set(int(build_info.auto_build_res))
             button = Checkbutton(
                 vil_prop_frame, 
