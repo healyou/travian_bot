@@ -1,9 +1,15 @@
-from flask import Flask
-from threading import Thread
-from flask import request
-import time
-from command.queue.dataclasses import *
 import json
+import time
+from threading import Thread
+
+from flask import Flask, request
+
+from command.queue.buildthread import BuildThread
+from command.queue.dataclasses import *
+from command.queue.properties import QueueProperties
+from utils.context import Context
+from utils.travian_utils import create_browser, login_to_account, open_travian
+from utils.util import getVillagesInfo
 
 
 class BuildPropertiesEncoder(json.JSONEncoder):
@@ -34,45 +40,123 @@ class BuildPropertiesEncoder(json.JSONEncoder):
 
 class BotController(object):
     def __init__(self): 
-        super(BotController, self).__init__(__name__)
+        super(BotController, self).__init__()
+        self.__login: bool = False
+        self.__started_work: bool = False
+        self.__build_thread: BuildThread = None
 
+    def login(self, server_url: str, login: str, psw: str):
+        if (self.__isLogin()):
+            raise Exception('Бот уже запущен')
+
+        try:
+            browser = create_browser()
+            Context.browser = browser
+
+            open_travian(browser)
+            login_to_account(browser)
+
+            Context.queueProperties = QueueProperties(browser)
+            self.__login = True
+
+        except Exception as err:
+            if (Context.browser is not None):
+                Context.browser.quit()
+            Context.browser = None
+            Context.queueProperties = None
+            Context.buildCornOnError = True
+            raise Exception(str(err))
+
+    def startWork(self, properties: BuildProperties):
+        if (not self.__isLogin()):
+            raise Exception('Необходимо авторизоваться')
+        elif (self.__isStartedWork()):
+            raise Exception('Бот уже запущен')
+
+        if (self.__build_thread is not None):
+            raise Exception('Поток строительства уже запущен')
+        else:
+            self.__build_thread = BuildThread(Context.queueProperties)
+            self.__build_thread.start()
+            self.__started_work = True
+
+    def stopWork(self):
+        if (not self.__isLogin()):
+            raise Exception('Необходимо авторизоваться')
+        elif (not self.__isStartedWork()):
+            raise Exception('Бот ещё не запущен')
+
+        self.__login = False
+        self.__started_work = False
+
+        if (self.__build_thread is not None):
+            self.__build_thread.stop()
+            self.__build_thread.join()
+            self.__build_thread = None
+
+        if (Context.browser is not None):
+            Context.browser.quit()
+
+            Context.browser = None
+            Context.queueProperties = None
+            Context.buildCornOnError = True
+
+    def getVillagesInfo(self) -> BuildProperties:
+        if (not self.__isLogin()):
+            raise Exception('Бот на запущен')
+        elif (self.__isStartedWork()):
+            raise Exception('Нельзя получить информацию во время работы бота')
+
+        villages_build_info = []
+        for vil_info in getVillagesInfo(Context.browser):
+            info: VillageInfo = vil_info
+            build_info: BuildVillageInfo = BuildVillageInfo(info, True)
+            villages_build_info.append(build_info)
+        return villages_build_info
+
+    def __isLogin(self) -> bool:
+        return self.__login
+
+    def __isStartedWork(self) -> bool:
+        return self.__started_work
 
 class FlaskApp(Flask):
     def __init__(self): 
         super(FlaskApp, self).__init__(__name__)
+
+        self.__bot_controller = BotController()
         
         self.add_url_rule('/', view_func=self.index)
         self.add_url_rule('/login', view_func=self.login, methods=['POST'])
         self.add_url_rule('/villages_info', view_func=self.villagesInfo)
         self.add_url_rule('/startWork', view_func=self.startWork, methods=['POST'])
+        self.add_url_rule('/stopWork', view_func=self.stopWork)
+        self.add_url_rule('/quit', view_func=self.quit)
 
     def index(self):
         return 'Hello World!'
 
     def login(self):
-        error = ''
         try:
             if request.method == "POST":
                 data = request.get_json()
-                # server_url = str(args.get('server_url'))
-                # login = str(args.get('login'))
-                # password = str(args.get('password'))
 
-                print (data)
+                server_url = str(data['server_url'])
+                login = str(data['login'])
+                password = str(data['password'])
 
+                self.__bot_controller.login(server_url, login, password)
                 return 'True'
+            else:
+                return 'False'
 
-            return 'False'
         except Exception as e:
-            print (str(e))
-            return 'False'
+            return str(e)
 
     def startWork(self):
         try:
             if request.method == "POST":
                 data = request.get_json()
-                if isinstance(data, dict):
-                    print ('dict')
 
                 infos = []
                 for build_vil_info in data['info_list']:
@@ -83,22 +167,34 @@ class FlaskApp(Flask):
                     infos.append(BuildVillageInfo(info, auto_build_res))
                 
                 properties = BuildProperties(infos)
-                print(properties)
-
+                self.__bot_controller.startWork(properties)
                 return 'True'
+            else:
+                return 'False'
 
-            return 'False'
         except Exception as e:
-            print (str(e))
-            return 'False'
+            return str(e)
+
+    def stopWork(self):
+        try:
+            self.__bot_controller.stopWork()
+            return 'True'
+        except Exception as e:
+            return str(e)
+
+    def quit(self):
+        try:
+            self.__bot_controller.stopWork()
+            # TODO -stop flask thread
+        except Exception as e:
+            return str(e)
 
     def villagesInfo(self):
-        infos = []
-        for i in range(3):
-            info = VillageInfo(str(i), Point(i,i))
-            infos.append(BuildVillageInfo(info, False))
-        prop = BuildProperties(infos)
-        return json.dumps(prop, cls=BuildPropertiesEncoder)
+        try:
+            prop = self.__bot_controller.getVillagesInfo()
+            return json.dumps(prop, cls=BuildPropertiesEncoder)
+        except Exception as e:
+            return str(e)
 
 
 class FlaskThread(Thread):

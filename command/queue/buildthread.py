@@ -23,6 +23,7 @@ class BuildThread(threading.Thread):
         return self.__stop.isSet()
 
     def run(self):
+        print('Начало работы потока')
         while not self.isStopped():
             time.sleep(5)
         print('завершение потока работы')
