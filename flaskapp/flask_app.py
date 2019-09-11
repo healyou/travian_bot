@@ -1,6 +1,6 @@
 import json
 import time
-from threading import Thread
+from threading import Thread, Event
 
 from flask import Flask, request
 
@@ -12,30 +12,21 @@ from utils.travian_utils import create_browser, login_to_account, open_travian
 from utils.util import getVillagesInfo
 
 
-class BuildPropertiesEncoder(json.JSONEncoder):
+@dataclass
+class RestAnswer(object):
+    result: bool
+    answer: any
+    error: str
+
+
+class DictJsonEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, BuildProperties):
-            return obj.__dict__
-        elif isinstance(obj, BuildVillageInfo):
-            return obj.__dict__
-        elif isinstance(obj, VillageInfo):
-            return obj.__dict__
-        elif isinstance(obj, Point):
-            return obj.__dict__
-        return json.JSONEncoder.default(self, obj)
+        return obj.__dict__
 
-# class BuildPropertiesDecoder(json.JSONDecoder):
-#     def __init__(self, *args, **kwargs):
-#         super(BuildPropertiesDecoder, self).__init__(object_hook=self.object_hook, *args, **kwargs)
-    
-#     def object_hook(self, dct):
-#         if ('info_list' in dct):
 
-#         if 'Actor' in dct:
-#             actor = Actor(dct['Actor']['Name'], dct['Actor']['Age'], '')
-#             movie = Movie(dct['Movie']['Title'], dct['Movie']['Gross'], '', dct['Movie']['Year'])
-#             return Edge(actor, movie)
-#         return dct
+def configureJsonAnswer(result: bool, answer:any = None, error: str = None) -> str:
+    answer = RestAnswer(result, answer, error)
+    return json.dumps(answer, cls=DictJsonEncoder)
 
 
 class BotController(object):
@@ -83,23 +74,22 @@ class BotController(object):
     def stopWork(self):
         if (not self.__isLogin()):
             raise Exception('Необходимо авторизоваться')
-        elif (not self.__isStartedWork()):
-            raise Exception('Бот ещё не запущен')
+        else:
+            self.__login = False
+            if (Context.browser is not None):
+                Context.browser.quit()
+                Context.browser = None
+                Context.queueProperties = None
+                Context.buildCornOnError = True
 
-        self.__login = False
-        self.__started_work = False
-
-        if (self.__build_thread is not None):
-            self.__build_thread.stop()
-            self.__build_thread.join()
-            self.__build_thread = None
-
-        if (Context.browser is not None):
-            Context.browser.quit()
-
-            Context.browser = None
-            Context.queueProperties = None
-            Context.buildCornOnError = True
+            if (not self.__isStartedWork()):
+                raise Exception('Бот ещё не запущен')
+            else:
+                self.__started_work = False
+                if (self.__build_thread is not None):
+                    self.__build_thread.stop()
+                    self.__build_thread.join()
+                    self.__build_thread = None
 
     def getVillagesInfo(self) -> BuildProperties:
         if (not self.__isLogin()):
@@ -110,9 +100,9 @@ class BotController(object):
         villages_build_info = []
         for vil_info in getVillagesInfo(Context.browser):
             info: VillageInfo = vil_info
-            build_info: BuildVillageInfo = BuildVillageInfo(info, True)
+            build_info: BuildVillageInfo = BuildVillageInfo(info, False)
             villages_build_info.append(build_info)
-        return villages_build_info
+        return BuildProperties(villages_build_info)
 
     def __isLogin(self) -> bool:
         return self.__login
@@ -134,7 +124,7 @@ class FlaskApp(Flask):
         self.add_url_rule('/quit', view_func=self.quit)
 
     def index(self):
-        return 'Hello World!'
+        return configureJsonAnswer(result=True, answer='Hello World!')
 
     def login(self):
         try:
@@ -146,12 +136,12 @@ class FlaskApp(Flask):
                 password = str(data['password'])
 
                 self.__bot_controller.login(server_url, login, password)
-                return 'True'
+                return configureJsonAnswer(result=True)
             else:
-                return 'False'
+                return configureJsonAnswer(result=False)
 
         except Exception as e:
-            return str(e)
+            return configureJsonAnswer(result=False, error=str(e))
 
     def startWork(self):
         try:
@@ -168,33 +158,34 @@ class FlaskApp(Flask):
                 
                 properties = BuildProperties(infos)
                 self.__bot_controller.startWork(properties)
-                return 'True'
+                return configureJsonAnswer(result=True)
             else:
-                return 'False'
+                return configureJsonAnswer(result=False)
 
         except Exception as e:
-            return str(e)
+            return configureJsonAnswer(result=False, error=str(e))
 
     def stopWork(self):
         try:
             self.__bot_controller.stopWork()
-            return 'True'
+            return configureJsonAnswer(result=True)
         except Exception as e:
-            return str(e)
+            return configureJsonAnswer(result=False, error=str(e))
 
     def quit(self):
         try:
             self.__bot_controller.stopWork()
             # TODO -stop flask thread
+            return configureJsonAnswer(result=True)
         except Exception as e:
-            return str(e)
+            return configureJsonAnswer(result=False, error=str(e))
 
     def villagesInfo(self):
         try:
             prop = self.__bot_controller.getVillagesInfo()
-            return json.dumps(prop, cls=BuildPropertiesEncoder)
+            return configureJsonAnswer(result=True, answer=prop)
         except Exception as e:
-            return str(e)
+            return configureJsonAnswer(result=False, error=str(e))
 
 
 class FlaskThread(Thread):
