@@ -1,0 +1,1 @@
+import '../../resources/css/blog-post.css';

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A minimal Electron application written with Typescript",
   "scripts": {
-    "build": "tsc",
+    "build": "webpack --config webpack.config.js && tsc",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start": "npm run build && electron ./dist/main.js"
@@ -20,8 +20,15 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
+    "autoprefixer": "^9.6.1",
+    "bootstrap": "4.3.1",
+    "css-loader": "^3.2.0",
     "electron": "^2.0.18",
-    "tslint": "^5.10.0",
-    "typescript": "^2.8.3"
+    "jquery": "3.4.1",
+    "popper.js": "1.15.0",
+    "style-loader": "^1.0.0",
+    "typescript": "^2.8.3",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.8"
   }
 }
