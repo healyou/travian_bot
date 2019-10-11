@@ -20,7 +20,7 @@ export class View implements IView {
 
     showLoginWindow(): void {
         // and load the index.html of the app.
-        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/index.html"));
+        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/login.html"));
     }
     showVillagePropertiesWindow(defaultProperties: BuildProperties): void {
         throw new Error("Method not implemented.");
@@ -66,6 +66,8 @@ export class View implements IView {
             var result = 'data from main process';
             // main_view.onLoginClick();
             event.sender.send('actionReply', result);
+
+            // main_view.onLoginClick();
         });
     }
 }

@@ -16,6 +16,24 @@ export class Presenter implements IPresenter {
     }
     login(serverUrl: string, login: string, psw: string): void {
         var request = new XMLHttpRequest();
+        request.open('GET', 'http://127.0.0.1:5000/', false);  // `false` makes the request synchronous
+        request.send(null);
+
+        if (request.status === 200) {
+            var response = 'response-' + request.responseText;
+            console.log(response);
+        } else {
+            var response = 'error response';
+            console.log(response);
+        }
+
+        // var oReq = new XMLHttpRequest();
+        // oReq.onload = reqListener;
+        // oReq.open('get', 'http://127.0.0.1:5000/', true);
+        // oReq.setRequestHeader('Content-Type', 'application/json');
+        // oReq.send(JSON.stringify(data));
+
+        var request = new XMLHttpRequest();
         request.open('post', 'http://127.0.0.1:5000/login', false);
         var data = {
             'server_url': 'test', 
@@ -23,10 +41,10 @@ export class Presenter implements IPresenter {
             'login': 'test'
         };
         request.setRequestHeader('Content-Type', 'application/json');
-        request.send(JSON.stringify(data));
-        if (request.status === 200) {
-            console.log(request.responseText);
-        }
+        // request.send(JSON.stringify(data));
+        // if (request.status === 200) {
+        //     console.log(request.responseText);
+        // }
     }
     startWork(defaultProperties: BuildProperties): void {
         throw new Error("Method not implemented.");
