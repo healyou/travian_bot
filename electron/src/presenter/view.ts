@@ -3,7 +3,7 @@ import { BuildProperties, BuildVillageInfo, VillageInfo, Point, LoginData } from
 import { Presenter } from './presenter';
 import { RendererProcessActionTypes, MainProcessActionTypes } from './../process/ActionTypes'
 import { app, BrowserWindow } from "electron";
-import * as path from "path";
+import { Utils } from '../utils/utils';
 
 export class View implements IView {
     private presenter: IPresenter;
@@ -17,10 +17,10 @@ export class View implements IView {
     }
 
     showLoginWindow(): void {
-        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/login.html"));
+        this.mainWindow.loadFile(Utils.configureHtmlFilePath("login.html"));
     }
     showVillagePropertiesWindow(defaultProperties: BuildProperties): void {
-        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/villageprop.html"));
+        this.mainWindow.loadFile(Utils.configureHtmlFilePath("villageprop.html"));
         this.ipc.on(RendererProcessActionTypes.LOAD_VILLAGE_PARAMS_PAGE, function(event: any) {
             event.sender.send(
                 MainProcessActionTypes.VILLAGE_PARAMS_DATA, 
@@ -30,7 +30,7 @@ export class View implements IView {
     }
     showBotWorkingWindow(): void {
         // other
-        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/login.html"));
+        this.mainWindow.loadFile(Utils.configureHtmlFilePath("botworking.html"));
     }
     disableWindow(): void {
         throw new Error("Method not implemented.");
@@ -59,11 +59,11 @@ export class View implements IView {
             // Dereference the window object, usually you would store windows
             // in an array if your app supports multi windows, this is the time
             // when you should delete the corresponding element.
+            this.presenter.quit();
             this.mainWindow = null;
         });
 
         var main_view = this;
-        var mainWindow = this.mainWindow;
 
         this.ipc = require('electron').ipcMain;
         this.ipc.on(RendererProcessActionTypes.LOGIN, function(event: any, response: any) {
@@ -73,6 +73,9 @@ export class View implements IView {
         this.ipc.on(RendererProcessActionTypes.START_WORK, function(event: any, response: any) {
             var buildProperties: BuildProperties = JSON.parse(response);
             main_view.presenter.startWork(buildProperties);
+        });
+        this.ipc.on(RendererProcessActionTypes.STOP_WORK, function(event: any) {
+            main_view.presenter.stopWork();
         });
     }
 }

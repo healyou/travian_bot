@@ -44,16 +44,21 @@ export class Presenter implements IPresenter {
         this.view.showBotWorkingWindow();
     }
     stopWork(): void {
+        this.closeBotWork();
+        this.view.showLoginWindow();
+    }
+    quit(): void {
+        this.closeBotWork();
+    }
+
+    private closeBotWork(): void {
         var request = new XMLHttpRequest();
         request.open('get', 'http://127.0.0.1:5000/stopWork', false);
         request.setRequestHeader('Content-Type', 'application/json');
-        request.send(null);
-        if (request.status === 200) {
-            console.log(request.responseText);
-        }
-    }
-    quit(): void {
-        this.stopWork();
+        // request.send(null);
+        // if (request.status === 200) {
+        //     console.log(request.responseText);
+        // }
     }
 
     private runPython(): void {
