@@ -1,4 +1,4 @@
-import { BuildProperties } from './properties';
+import { BuildProperties } from '../data/dataTypes';
 
 export interface IView {
     showLoginWindow(): void;

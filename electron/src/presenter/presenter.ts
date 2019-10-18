@@ -1,5 +1,5 @@
 import { IView, IPresenter } from './contract';
-import { BuildProperties } from './properties';
+import { BuildProperties } from '../data/dataTypes';
 import * as path from "path";
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 

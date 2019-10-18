@@ -1,46 +1,49 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { RendererProcessActionTypes } from '../process/ActionTypes'
+import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/ActionTypes'
+import { BuildProperties, BuildVillageInfo, Point } from '../data/dataTypes';
 
-
-function processResponse(response: any) {
-    console.log('prop' + response);
-}
 var ipc = require('electron').ipcRenderer;
-ipc.once('actionReply', function(event: any, response: any){
-    processResponse(response);
-});
 
-var authButton = document.getElementById('login');
-var emailInput = <HTMLInputElement>document.getElementById('email');
-var passwordInput = <HTMLInputElement>document.getElementById('password');
-var messageElement = <HTMLElement>document.getElementById('message');
+var saveButton = document.getElementById('saveVillagesParams');
+saveButton.addEventListener('click', function(){
+    var formData = {
+        test: 'test'
+    };
 
-function validateFormData(email: String, password: String): Boolean {
-    if (!email.trim() || !password.trim()) {
-        messageElement.innerHTML = "Необходимо ввести данные";
-        return false;
-    } else {
-        return true;
-    }
-}
-
-authButton.addEventListener('click', function(){
-
-    var email = emailInput.value;
-    var password = passwordInput.value;
-
-    if (validateFormData(email, password)) {
-        var formData = {
-            email: email,
-            password: password
-        };
-    
-        ipc.send(RendererProcessActionTypes.LOGIN, JSON.stringify(formData));
-    }
+    ipc.send(RendererProcessActionTypes.START_WORK, JSON.stringify(formData));
     // TODO - синхронный запрос не работает, а асинхронный работает
     // TODO - где раположить view и presenter - main or renderer process electron
     // TODO - как организовать работу запросов к сервису?
 });
+
+ipc.once(MainProcessActionTypes.VILLAGE_PARAMS_DATA, function(event: any, response: any){
+    var buildProps: BuildProperties = JSON.parse(response)
+    var villageInfoElem = document.getElementById('villageInfo');
+
+    var propHtml = "";
+    var i = 0;
+
+    buildProps.infoList.forEach(function (villageInfo: BuildVillageInfo) {
+        var autoBuildResource: boolean = villageInfo.autoBuildRes;
+        var villageCoord: Point = villageInfo.info.point;
+        var villageName: String = villageInfo.info.name;
+
+        var coordText: String = `${villageCoord.x}/${villageCoord.y}`;
+        var checkedValue: String = autoBuildResource ? "checked" : "";
+        
+        propHtml += `
+        <li class="list-group-item">
+            ${villageName} - <span class="badge badge-secondary">${coordText}</span>
+            <div class="form-check float-right">
+                <input type="checkbox" class="form-check-input" ${checkedValue} id="autoBuildRes${i++}">
+                <label class="form-check-label" for="exampleCheck1">Автоматическое строительство ресурсов</label>
+            </div>
+        </li>
+        `;
+    });
+
+    villageInfoElem.innerHTML = propHtml;
+});
+ipc.send(RendererProcessActionTypes.LOAD_VILLAGE_PARAMS_PAGE);

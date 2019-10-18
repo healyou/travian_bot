@@ -1,12 +1,11 @@
 
 export enum RendererProcessActionTypes {
-    LOGIN = "login",
-    START_WORK = "startWork",
-    STOP_WORK = "stopWork"
+    LOGIN = 'login',
+    START_WORK = 'startWork',
+    STOP_WORK = 'stopWork',
+    LOAD_VILLAGE_PARAMS_PAGE = 'loadVillageParamsPage'
 }
 
 export enum MainProcessActionTypes {
-    LOGIN = "NEWSPAPER",
-    START_WORK = "NEWSLETTER",
-    STOP_WORK = "MAGAZINE"
+    VILLAGE_PARAMS_DATA = 'villageParamsData'
 }

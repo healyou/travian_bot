@@ -1,7 +1,7 @@
 import { IView, IPresenter } from './contract';
-import { BuildProperties } from './properties';
+import { BuildProperties, BuildVillageInfo, VillageInfo, Point } from '../data/dataTypes';
 import { Presenter } from './presenter';
-import { RendererProcessActionTypes } from './../process/ActionTypes'
+import { RendererProcessActionTypes, MainProcessActionTypes } from './../process/ActionTypes'
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 
@@ -66,10 +66,32 @@ export class View implements IView {
         var ipc = require('electron').ipcMain;
         var ipcRenderer = require('electron').ipcRenderer
         ipc.on(RendererProcessActionTypes.LOGIN, function(event: any, data: any) {
+            ipc.on(RendererProcessActionTypes.LOAD_VILLAGE_PARAMS_PAGE, function(event: any, data: any) {
+                var villagesInfo = new Array<BuildVillageInfo>(
+                    new BuildVillageInfo(
+                        new VillageInfo("village1", new Point(50, 50)),
+                        false
+                    ),
+                    new BuildVillageInfo(
+                        new VillageInfo("village2", new Point(150, 150)),
+                        false
+                    ),
+                    new BuildVillageInfo(
+                        new VillageInfo("village3", new Point(70, 150)),
+                        true
+                    )
+                );
+                var prop: BuildProperties = new BuildProperties(villagesInfo);
+                event.sender.send(MainProcessActionTypes.VILLAGE_PARAMS_DATA, JSON.stringify(prop));
+            });
+
+            console.log('data from renderer process - ' + data);
+            main_view.onLoginClick();
+        });
+        ipc.on(RendererProcessActionTypes.START_WORK, function(event: any, data: any) {
             console.log('data from renderer process - ' + data);
             var result = 'data from main process';
-            main_view.onLoginClick();
-            //как отправить обратно данные на новый html файл?
+            mainWindow.webContents.send('actionReply', result);
         });
     }
 }
