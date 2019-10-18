@@ -5,22 +5,17 @@ import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/A
 import { BuildProperties, BuildVillageInfo, Point } from '../data/dataTypes';
 
 var ipc = require('electron').ipcRenderer;
+var savedBuildProps: BuildProperties = null;
 
 var saveButton = document.getElementById('saveVillagesParams');
 saveButton.addEventListener('click', function(){
-    var formData = {
-        test: 'test'
-    };
-
-    ipc.send(RendererProcessActionTypes.START_WORK, JSON.stringify(formData));
-    // TODO - синхронный запрос не работает, а асинхронный работает
-    // TODO - где раположить view и presenter - main or renderer process electron
-    // TODO - как организовать работу запросов к сервису?
+    ipc.send(RendererProcessActionTypes.START_WORK, JSON.stringify(savedBuildProps));
 });
 
 ipc.once(MainProcessActionTypes.VILLAGE_PARAMS_DATA, function(event: any, response: any){
-    var buildProps: BuildProperties = JSON.parse(response)
+    var buildProps: BuildProperties = JSON.parse(response);
     var villageInfoElem = document.getElementById('villageInfo');
+    savedBuildProps = buildProps;
 
     var propHtml = "";
     var i = 0;

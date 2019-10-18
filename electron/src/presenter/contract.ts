@@ -1,4 +1,4 @@
-import { BuildProperties } from '../data/dataTypes';
+import { BuildProperties, LoginData } from '../data/dataTypes';
 
 export interface IView {
     showLoginWindow(): void;
@@ -11,7 +11,7 @@ export interface IView {
 
 export interface IPresenter {
     init(): void;
-    login(serverUrl: string, login: string, psw: string): void;
+    login(loginData: LoginData): void;
     startWork(defaultProperties: BuildProperties): void;
     stopWork(): void;
     quit(): void;

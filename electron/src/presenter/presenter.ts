@@ -1,5 +1,5 @@
 import { IView, IPresenter } from './contract';
-import { BuildProperties } from '../data/dataTypes';
+import { BuildProperties, LoginData, BuildVillageInfo, VillageInfo, Point } from '../data/dataTypes';
 import * as path from "path";
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 
@@ -11,43 +11,37 @@ export class Presenter implements IPresenter {
     }
 
     init(): void {
-        this.runPython();
+        // this.runPython();
         this.view.showLoginWindow();
     }
-    login(serverUrl: string, login: string, psw: string): void {
-        var request = new XMLHttpRequest();
-        request.open('GET', 'http://127.0.0.1:5000/', false);  // `false` makes the request synchronous
-        request.send(null);
-
-        if (request.status === 200) {
-            var response = 'response-' + request.responseText;
-            console.log(response);
-        } else {
-            var response = 'error response';
-            console.log(response);
-        }
-
-        // var oReq = new XMLHttpRequest();
-        // oReq.onload = reqListener;
-        // oReq.open('get', 'http://127.0.0.1:5000/', true);
-        // oReq.setRequestHeader('Content-Type', 'application/json');
-        // oReq.send(JSON.stringify(data));
-
+    login(loginData: LoginData): void {
         var request = new XMLHttpRequest();
         request.open('post', 'http://127.0.0.1:5000/login', false);
-        var data = {
-            'server_url': 'test', 
-            'password': 'test', 
-            'login': 'test'
-        };
         request.setRequestHeader('Content-Type', 'application/json');
-        // request.send(JSON.stringify(data));
+        // request.send(JSON.stringify(loginData));
         // if (request.status === 200) {
         //     console.log(request.responseText);
         // }
+
+        var villagesInfo = new Array<BuildVillageInfo>(
+            new BuildVillageInfo(
+                new VillageInfo("village1", new Point(50, 50)),
+                false
+            ),
+            new BuildVillageInfo(
+                new VillageInfo("village2", new Point(150, 150)),
+                false
+            ),
+            new BuildVillageInfo(
+                new VillageInfo("village3", new Point(70, 150)),
+                true
+            )
+        );
+        var prop: BuildProperties = new BuildProperties(villagesInfo);
+        this.view.showVillagePropertiesWindow(prop);
     }
     startWork(defaultProperties: BuildProperties): void {
-        throw new Error("Method not implemented.");
+        this.view.showBotWorkingWindow();
     }
     stopWork(): void {
         var request = new XMLHttpRequest();

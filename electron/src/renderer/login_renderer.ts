@@ -2,12 +2,9 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { LoginData } from '../data/dataTypes';
 import { RendererProcessActionTypes } from '../process/ActionTypes'
 
-
-function processResponse(response: any) {
-    console.log(response);
-}
 
 var ipc = require('electron').ipcRenderer;
 
@@ -16,8 +13,8 @@ var emailInput = <HTMLInputElement>document.getElementById('email');
 var passwordInput = <HTMLInputElement>document.getElementById('password');
 var messageElement = <HTMLElement>document.getElementById('message');
 
-function validateFormData(email: String, password: String): Boolean {
-    if (!email.trim() || !password.trim()) {
+function validateFormData(loginData: LoginData): Boolean {
+    if (!loginData.login.trim() || !loginData.psw.trim() || !loginData.serverUrl.trim()) {
         messageElement.innerHTML = "Необходимо ввести данные";
         return false;
     } else {
@@ -26,22 +23,11 @@ function validateFormData(email: String, password: String): Boolean {
 }
 
 authButton.addEventListener('click', function(){
-    ipc.once('actionReply', function(event: any, response: any){
-        processResponse(response);
-    });
-
     var email = emailInput.value;
     var password = passwordInput.value;
+    var loginData: LoginData = new LoginData('url', email, password);
 
-    if (validateFormData(email, password)) {
-        var formData = {
-            email: email,
-            password: password
-        };
-    
-        ipc.send(RendererProcessActionTypes.LOGIN, JSON.stringify(formData));
+    if (validateFormData(loginData)) {
+        ipc.send(RendererProcessActionTypes.LOGIN, JSON.stringify(loginData));
     }
-    // TODO - синхронный запрос не работает, а асинхронный работает
-    // TODO - где раположить view и presenter - main or renderer process electron
-    // TODO - как организовать работу запросов к сервису?
 });

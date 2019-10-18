@@ -1,13 +1,14 @@
 import { IView, IPresenter } from './contract';
-import { BuildProperties, BuildVillageInfo, VillageInfo, Point } from '../data/dataTypes';
+import { BuildProperties, BuildVillageInfo, VillageInfo, Point, LoginData } from '../data/dataTypes';
 import { Presenter } from './presenter';
 import { RendererProcessActionTypes, MainProcessActionTypes } from './../process/ActionTypes'
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 
 export class View implements IView {
-    private presenter: IPresenter
-    private mainWindow: Electron.BrowserWindow
+    private presenter: IPresenter;
+    private mainWindow: Electron.BrowserWindow;
+    private ipc: Electron.IpcMain;
 
     constructor() {
         this.createWindow()
@@ -15,20 +16,21 @@ export class View implements IView {
         this.presenter.init()
     }
 
-    public onLoginClick() {
-        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/villageprop.html"));
-        // this.presenter.login('', '', '');
-    }
-
     showLoginWindow(): void {
-        // and load the index.html of the app.
         this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/login.html"));
     }
     showVillagePropertiesWindow(defaultProperties: BuildProperties): void {
-        throw new Error("Method not implemented.");
+        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/villageprop.html"));
+        this.ipc.on(RendererProcessActionTypes.LOAD_VILLAGE_PARAMS_PAGE, function(event: any) {
+            event.sender.send(
+                MainProcessActionTypes.VILLAGE_PARAMS_DATA, 
+                JSON.stringify(defaultProperties)
+            );
+        });
     }
     showBotWorkingWindow(): void {
-        throw new Error("Method not implemented.");
+        // other
+        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/login.html"));
     }
     disableWindow(): void {
         throw new Error("Method not implemented.");
@@ -63,35 +65,14 @@ export class View implements IView {
         var main_view = this;
         var mainWindow = this.mainWindow;
 
-        var ipc = require('electron').ipcMain;
-        var ipcRenderer = require('electron').ipcRenderer
-        ipc.on(RendererProcessActionTypes.LOGIN, function(event: any, data: any) {
-            ipc.on(RendererProcessActionTypes.LOAD_VILLAGE_PARAMS_PAGE, function(event: any, data: any) {
-                var villagesInfo = new Array<BuildVillageInfo>(
-                    new BuildVillageInfo(
-                        new VillageInfo("village1", new Point(50, 50)),
-                        false
-                    ),
-                    new BuildVillageInfo(
-                        new VillageInfo("village2", new Point(150, 150)),
-                        false
-                    ),
-                    new BuildVillageInfo(
-                        new VillageInfo("village3", new Point(70, 150)),
-                        true
-                    )
-                );
-                var prop: BuildProperties = new BuildProperties(villagesInfo);
-                event.sender.send(MainProcessActionTypes.VILLAGE_PARAMS_DATA, JSON.stringify(prop));
-            });
-
-            console.log('data from renderer process - ' + data);
-            main_view.onLoginClick();
+        this.ipc = require('electron').ipcMain;
+        this.ipc.on(RendererProcessActionTypes.LOGIN, function(event: any, response: any) {
+            var loginData: LoginData = JSON.parse(response);
+            main_view.presenter.login(loginData);
         });
-        ipc.on(RendererProcessActionTypes.START_WORK, function(event: any, data: any) {
-            console.log('data from renderer process - ' + data);
-            var result = 'data from main process';
-            mainWindow.webContents.send('actionReply', result);
+        this.ipc.on(RendererProcessActionTypes.START_WORK, function(event: any, response: any) {
+            var buildProperties: BuildProperties = JSON.parse(response);
+            main_view.presenter.startWork(buildProperties);
         });
     }
 }

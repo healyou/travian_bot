@@ -1,5 +1,17 @@
 export type integer = number;
 
+export class LoginData {
+    public serverUrl: String;
+    public login: String;
+    public psw: String;
+
+    constructor(serverUrl: String, login: String, psw: String) {
+        this.serverUrl = serverUrl;
+        this.login = login;
+        this.psw = psw;
+    }
+}
+
 export class Point {
     public x: integer;
     public y: integer;
