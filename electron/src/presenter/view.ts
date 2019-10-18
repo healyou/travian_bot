@@ -1,6 +1,7 @@
 import { IView, IPresenter } from './contract';
 import { BuildProperties } from './properties';
 import { Presenter } from './presenter';
+import { RendererProcessActionTypes } from './../process/ActionTypes'
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 
@@ -15,7 +16,8 @@ export class View implements IView {
     }
 
     public onLoginClick() {
-        this.presenter.login('', '', '');
+        this.mainWindow.loadFile(path.join(__dirname, "../../electron/resources/villageprop.html"));
+        // this.presenter.login('', '', '');
     }
 
     showLoginWindow(): void {
@@ -59,15 +61,15 @@ export class View implements IView {
         });
 
         var main_view = this;
+        var mainWindow = this.mainWindow;
 
         var ipc = require('electron').ipcMain;
-        ipc.on('invokeAction', function(event: any, data: any) {
+        var ipcRenderer = require('electron').ipcRenderer
+        ipc.on(RendererProcessActionTypes.LOGIN, function(event: any, data: any) {
             console.log('data from renderer process - ' + data);
             var result = 'data from main process';
-            // main_view.onLoginClick();
-            event.sender.send('actionReply', result);
-
-            // main_view.onLoginClick();
+            main_view.onLoginClick();
+            //как отправить обратно данные на новый html файл?
         });
     }
 }
