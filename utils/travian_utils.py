@@ -1,9 +1,10 @@
 from command.creator.factory import JsonCommandCreator
 from selenium.webdriver import Chrome
+from selenium.webdriver import *
 
 
 def create_browser():
-    return Chrome(executable_path='install/chromedriver.exe')
+    return Chrome(executable_path='install/chromedriver_77.exe')
 
 def open_travian(browser):
     browser.get('https://ts3.travian.ru')

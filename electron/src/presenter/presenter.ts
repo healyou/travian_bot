@@ -2,25 +2,27 @@ import { IView, IPresenter } from './contract';
 import { BuildProperties, LoginData, BuildVillageInfo, VillageInfo, Point } from '../data/dataTypes';
 import * as path from "path";
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { BotServiceImpl, BotService } from '../rest/service'
 
 export class Presenter implements IPresenter {
     private view: IView;
+    private botService: BotService;
 
     constructor(view: IView) {
         this.view = view;
+        this.botService = new BotServiceImpl();
     }
 
     init(): void {
-        // this.runPython();
+        //this.runPython();
         this.view.showLoginWindow();
     }
     login(loginData: LoginData): void {
-        var request = new XMLHttpRequest();
-        request.open('post', 'http://127.0.0.1:5000/login', false);
-        request.setRequestHeader('Content-Type', 'application/json');
-        // request.send(JSON.stringify(loginData));
-        // if (request.status === 200) {
-        //     console.log(request.responseText);
+        // var login: boolean = this.botService.login(loginData);
+        // if (login) {
+        //     // nothing TODO
+        // } else {
+        //     throw new Error('Ошибка авторизации');
         // }
 
         var villagesInfo = new Array<BuildVillageInfo>(
@@ -44,11 +46,12 @@ export class Presenter implements IPresenter {
         this.view.showBotWorkingWindow();
     }
     stopWork(): void {
-        this.closeBotWork();
+        //this.closeBotWork();
         this.view.showLoginWindow();
     }
     quit(): void {
         this.closeBotWork();
+        //this.botService.quit();
     }
 
     private closeBotWork(): void {
