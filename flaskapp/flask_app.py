@@ -121,7 +121,6 @@ class FlaskApp(Flask):
         self.add_url_rule('/villages_info', view_func=self.villagesInfo)
         self.add_url_rule('/startWork', view_func=self.startWork, methods=['POST'])
         self.add_url_rule('/stopWork', view_func=self.stopWork)
-        self.add_url_rule('/quit', view_func=self.quit)
 
     def index(self):
         return configureJsonAnswer(result=True, answer='Hello World!')
@@ -149,11 +148,11 @@ class FlaskApp(Flask):
                 data = request.get_json()
 
                 infos = []
-                for build_vil_info in data['info_list']:
+                for build_vil_info in data['infoList']:
                     info_data = build_vil_info['info']
                     point = Point(info_data['point']['x'], info_data['point']['y'])
                     info = VillageInfo(info_data['name'], point)
-                    auto_build_res = bool(build_vil_info['auto_build_res'])
+                    auto_build_res = bool(build_vil_info['autoBuildRes'])
                     infos.append(BuildVillageInfo(info, auto_build_res))
                 
                 properties = BuildProperties(infos)
@@ -168,14 +167,6 @@ class FlaskApp(Flask):
     def stopWork(self):
         try:
             self.__bot_controller.stopWork()
-            return configureJsonAnswer(result=True)
-        except Exception as e:
-            return configureJsonAnswer(result=False, error=str(e))
-
-    def quit(self):
-        try:
-            self.__bot_controller.stopWork()
-            # TODO -stop flask thread
             return configureJsonAnswer(result=True)
         except Exception as e:
             return configureJsonAnswer(result=False, error=str(e))

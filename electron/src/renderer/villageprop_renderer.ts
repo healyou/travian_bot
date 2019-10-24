@@ -13,6 +13,7 @@ saveButton.addEventListener('click', function(){
 });
 
 ipc.once(MainProcessActionTypes.VILLAGE_PARAMS_DATA, function(event: any, response: any){
+    console.log(response);
     var buildProps: BuildProperties = JSON.parse(response);
     var villageInfoElem = document.getElementById('villageInfo');
     savedBuildProps = buildProps;

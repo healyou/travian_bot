@@ -7,5 +7,6 @@ export enum RendererProcessActionTypes {
 }
 
 export enum MainProcessActionTypes {
-    VILLAGE_PARAMS_DATA = 'villageParamsData'
+    VILLAGE_PARAMS_DATA = 'villageParamsData',
+    EXECUTION_ERROR = 'executionErrpr'
 }

@@ -16,6 +16,10 @@ export class View implements IView {
         this.presenter.init()
     }
 
+    showError(error: string): void {
+        this.mainWindow.webContents.send(MainProcessActionTypes.EXECUTION_ERROR, error);
+    }
+
     showLoginWindow(): void {
         this.mainWindow.loadFile(Utils.configureHtmlFilePath("login.html"));
     }

@@ -1,6 +1,7 @@
 import { BuildProperties, LoginData } from '../data/dataTypes';
 
 export interface IView {
+    showError(error: string): void;
     showLoginWindow(): void;
     showVillagePropertiesWindow(defaultProperties: BuildProperties): void;
     showBotWorkingWindow(): void;

@@ -3,7 +3,7 @@
 // All of the Node.js APIs are available in this process.
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { LoginData } from '../data/dataTypes';
-import { RendererProcessActionTypes } from '../process/ActionTypes'
+import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/ActionTypes'
 
 
 var ipc = require('electron').ipcRenderer;
@@ -30,4 +30,8 @@ authButton.addEventListener('click', function(){
     if (validateFormData(loginData)) {
         ipc.send(RendererProcessActionTypes.LOGIN, JSON.stringify(loginData));
     }
+});
+
+ipc.once(MainProcessActionTypes.EXECUTION_ERROR, function(event: any, response: any){
+    messageElement.innerHTML = response;
 });

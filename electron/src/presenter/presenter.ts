@@ -3,6 +3,7 @@ import { BuildProperties, LoginData, BuildVillageInfo, VillageInfo, Point } from
 import * as path from "path";
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { BotServiceImpl, BotService } from '../rest/service'
+import { resolve } from 'url';
 
 export class Presenter implements IPresenter {
     private view: IView;
@@ -14,54 +15,64 @@ export class Presenter implements IPresenter {
     }
 
     init(): void {
-        //this.runPython();
+        this.runPython();
         this.view.showLoginWindow();
     }
     login(loginData: LoginData): void {
-        // var login: boolean = this.botService.login(loginData);
-        // if (login) {
-        //     // nothing TODO
-        // } else {
-        //     throw new Error('Ошибка авторизации');
-        // }
-
-        var villagesInfo = new Array<BuildVillageInfo>(
-            new BuildVillageInfo(
-                new VillageInfo("village1", new Point(50, 50)),
-                false
-            ),
-            new BuildVillageInfo(
-                new VillageInfo("village2", new Point(150, 150)),
-                false
-            ),
-            new BuildVillageInfo(
-                new VillageInfo("village3", new Point(70, 150)),
-                true
-            )
-        );
-        var prop: BuildProperties = new BuildProperties(villagesInfo);
-        this.view.showVillagePropertiesWindow(prop);
+        var presenter = this;
+        this.botService.login(loginData).then(function (value: string) {
+            var villagesInfo = new Array<BuildVillageInfo>(
+                new BuildVillageInfo(
+                    new VillageInfo("village1", new Point(50, 50)),
+                    false
+                ),
+                new BuildVillageInfo(
+                    new VillageInfo("village2", new Point(150, 150)),
+                    false
+                ),
+                new BuildVillageInfo(
+                    new VillageInfo("village3", new Point(70, 150)),
+                    true
+                )
+            );
+            presenter.botService.getVillagesInfo().then(function (value: BuildProperties) {
+                console.log(JSON.stringify(value));
+                presenter.view.showVillagePropertiesWindow(value);
+            }).catch(function (error: any) {
+                var message = 'Внутренняя ошибка1: ' + JSON.stringify(error);
+                presenter.view.showError(message);
+            });
+        }).catch(function (error: any) {
+            var message = 'Внутренняя ошибка: ' + JSON.stringify(error);
+            presenter.view.showError(message);
+        });
     }
     startWork(defaultProperties: BuildProperties): void {
-        this.view.showBotWorkingWindow();
+        var presenter = this;
+        this.botService.startWork(defaultProperties).then(function (value: string) {
+            presenter.view.showBotWorkingWindow();
+        }).catch(function (error: any) {
+            console.log(JSON.stringify(error));
+        });
     }
     stopWork(): void {
-        //this.closeBotWork();
-        this.view.showLoginWindow();
+        var presenter = this;
+        this.closeBotWork().then(function (value: string) {
+            presenter.view.showLoginWindow();
+        }).catch(function (error: any) {
+            console.log(JSON.stringify(error));
+        });
     }
     quit(): void {
-        this.closeBotWork();
-        //this.botService.quit();
+        this.closeBotWork().then(function (value: string) {
+
+        }).catch(function (error: any) {
+            console.log(JSON.stringify(error));
+        });
     }
 
-    private closeBotWork(): void {
-        var request = new XMLHttpRequest();
-        request.open('get', 'http://127.0.0.1:5000/stopWork', false);
-        request.setRequestHeader('Content-Type', 'application/json');
-        // request.send(null);
-        // if (request.status === 200) {
-        //     console.log(request.responseText);
-        // }
+    private closeBotWork(): Promise<string> {
+        return this.botService.stopWork()
     }
 
     private runPython(): void {
@@ -72,7 +83,7 @@ export class Presenter implements IPresenter {
 
         // run python flask server
         var pythonPath = path.join(__dirname, '../../.venv/Scripts/python')
-        var scriptPath = path.join(__dirname, '../../maingui.py')
+        var scriptPath = path.join(__dirname, '../../mainflask.py')
         var python = require('child_process').spawn(pythonPath, [scriptPath]);
         python.stdout.on('data', (data: any) => {
             console.log("data: ",data.toString('utf8'));
