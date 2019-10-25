@@ -1,6 +1,6 @@
-import { LoginData, BuildProperties, BuildVillageInfo, VillageInfo, Point } from '../data/dataTypes'
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { LoginData, BuildProperties } from '../data/dataTypes'
 import { SyncJsonRequest } from './request';
+import { DeserializeUtils } from '../data/deserialize';
 
 export interface BotService {
     login(loginData: LoginData): Promise<string>;
@@ -24,38 +24,14 @@ export class BotServiceImpl implements BotService {
         return request.send().then(function (jsonData: string): Promise<BuildProperties> {
             return new Promise<BuildProperties>(function (resolve, reject) {
                 try {
-                    let prop = Object.create(BuildProperties.prototype);
-                    resolve(BotServiceImpl.decodeBuildProperties(jsonData));
+                    var propJson = JSON.stringify(JSON.parse(jsonData).answer);
+                    var buildProperties = DeserializeUtils.buildPropertiesFromJson(propJson);
+                    resolve(buildProperties);
                 } catch(error) {
                     reject(error);
                 }
             });
         });
-    }
-    // TODO - написать конвертер из json в объекты со свойствами name_x to nameX
-    private static decodeBuildProperties(json: string): BuildProperties {
-        return {
-            infoList: this.decodeInfoList(json)
-        };
-    }
-    private static decodeInfoList(json: string): Array<BuildVillageInfo> {
-        var infos: Array<BuildVillageInfo> = new Array();
-        JSON.parse(json).answer.info_list.forEach((item: Object) => {
-            infos.push(this.decodeBuildVillageInfo(item))
-        });
-        return infos;
-    }
-    private static decodeBuildVillageInfo(object: any): BuildVillageInfo {
-        return {
-            info: new VillageInfo(object.info.name, this.decodePoint(object.info.point)),
-            autoBuildRes: object.auto_build_res
-        }
-    } 
-    private static decodePoint(object: any): Point {
-        return {
-            x: object.x,
-            y: object.y
-        }
     }
     public startWork(defaultProperties: BuildProperties): Promise<string> {
         var request = new SyncJsonRequest('post', 'http://127.0.0.1:5000/startWork', JSON.stringify(defaultProperties));
