@@ -4,12 +4,24 @@
 import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/ActionTypes'
 import { BuildProperties, BuildVillageInfo, Point } from '../data/dataTypes';
 
+function getAutoBuildCheckBoxId(point: Point): string {
+    return 'buildResCheckBox_' + point.x + ':' + point.y;
+}
+
 var ipc = require('electron').ipcRenderer;
 var savedBuildProps: BuildProperties = null;
 
 var saveButton = document.getElementById('saveVillagesParams');
 saveButton.addEventListener('click', function(){
     saveButton.setAttribute('disabled', 'true');
+
+    savedBuildProps.infoList.forEach((value: BuildVillageInfo) => {
+        var coord: Point = value.info.point;
+        var checkBoxId = getAutoBuildCheckBoxId(coord); 
+        var checked: boolean = (<HTMLInputElement> document.getElementById(checkBoxId)).checked;
+        value.autoBuildRes = checked;
+    });
+
     ipc.send(RendererProcessActionTypes.START_WORK, JSON.stringify(savedBuildProps));
 });
 
@@ -34,7 +46,7 @@ ipc.once(MainProcessActionTypes.VILLAGE_PARAMS_DATA, function(event: any, respon
         <li class="list-group-item">
             ${villageName} - <span class="badge badge-secondary">${coordText}</span>
             <div class="form-check float-right">
-                <input type="checkbox" class="form-check-input" ${checkedValue} id="autoBuildRes${i++}">
+                <input type="checkbox" class="form-check-input" ${checkedValue} id="${getAutoBuildCheckBoxId(villageCoord)}">
                 <label class="form-check-label" for="exampleCheck1">Автоматическое строительство ресурсов</label>
             </div>
         </li>

@@ -21,20 +21,6 @@ export class Presenter implements IPresenter {
     login(loginData: LoginData): void {
         var presenter = this;
         this.botService.login(loginData).then(function (value: string) {
-            var villagesInfo = new Array<BuildVillageInfo>(
-                new BuildVillageInfo(
-                    new VillageInfo("village1", new Point(50, 50)),
-                    false
-                ),
-                new BuildVillageInfo(
-                    new VillageInfo("village2", new Point(150, 150)),
-                    false
-                ),
-                new BuildVillageInfo(
-                    new VillageInfo("village3", new Point(70, 150)),
-                    true
-                )
-            );
             presenter.botService.getVillagesInfo().then(function (value: BuildProperties) {
                 console.log(JSON.stringify(value));
                 presenter.view.showVillagePropertiesWindow(value);
