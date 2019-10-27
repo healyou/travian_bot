@@ -1,7 +1,6 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { LoginData } from '../data/dataTypes';
 import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/ActionTypes'
 
@@ -28,10 +27,12 @@ authButton.addEventListener('click', function(){
     var loginData: LoginData = new LoginData('url', email, password);
 
     if (validateFormData(loginData)) {
+        authButton.setAttribute('disabled', 'true');
         ipc.send(RendererProcessActionTypes.LOGIN, JSON.stringify(loginData));
     }
 });
 
-ipc.once(MainProcessActionTypes.EXECUTION_ERROR, function(event: any, response: any){
+ipc.once(MainProcessActionTypes.EXECUTION_ERROR, function(event: any, response: any) {
+    authButton.setAttribute('disabled', 'false');
     messageElement.innerHTML = response;
 });

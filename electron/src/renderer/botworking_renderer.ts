@@ -6,6 +6,7 @@ import { RendererProcessActionTypes } from '../process/ActionTypes'
 var ipc = require('electron').ipcRenderer;
 
 var closeWorkButton = document.getElementById('closeBotWork');
-closeWorkButton.addEventListener('click', function(){
+closeWorkButton.addEventListener('click', function() {
+    closeWorkButton.setAttribute('disabled', 'true');
     ipc.send(RendererProcessActionTypes.STOP_WORK);
 });

@@ -9,6 +9,7 @@ var savedBuildProps: BuildProperties = null;
 
 var saveButton = document.getElementById('saveVillagesParams');
 saveButton.addEventListener('click', function(){
+    saveButton.setAttribute('disabled', 'true');
     ipc.send(RendererProcessActionTypes.START_WORK, JSON.stringify(savedBuildProps));
 });
 
