@@ -1,6 +1,8 @@
 .venv/**/*
 debug.log
 **/__pycache__/**/*
+** Session.sql
+**.db
 
 node_modules
 dist
