@@ -3,6 +3,7 @@ debug.log
 **/__pycache__/**/*
 ** Session.sql
 **.db
+chromedriver.exe
 
 node_modules
 dist

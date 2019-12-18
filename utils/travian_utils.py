@@ -4,7 +4,7 @@ from selenium.webdriver import *
 
 
 def create_browser():
-    return Chrome(executable_path='install/chromedriver_77.exe')
+    return Chrome(executable_path='install/chromedriver.exe')
 
 def open_travian(browser):
     browser.get('https://ts3.travian.ru')
