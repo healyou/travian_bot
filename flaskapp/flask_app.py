@@ -44,8 +44,8 @@ class BotController(object):
             browser = create_browser()
             Context.browser = browser
 
-            open_travian(browser)
-            login_to_account(browser)
+            open_travian(browser, server_url)
+            login_to_account(browser, login, psw)
 
             Context.queueProperties = QueueProperties(browser)
             self.__login = True
@@ -82,14 +82,11 @@ class BotController(object):
                 Context.queueProperties = None
                 Context.buildCornOnError = True
 
-            if (not self.__isStartedWork()):
-                raise Exception('Бот ещё не запущен')
-            else:
-                self.__started_work = False
-                if (self.__build_thread is not None):
-                    self.__build_thread.stop()
-                    self.__build_thread.join()
-                    self.__build_thread = None
+            self.__started_work = False
+            if (self.__build_thread is not None):
+                self.__build_thread.stop()
+                self.__build_thread.join()
+                self.__build_thread = None
 
     def getVillagesInfo(self) -> BuildProperties:
         if (not self.__isLogin()):

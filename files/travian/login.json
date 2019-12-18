@@ -6,7 +6,7 @@
                 "value": "input[type='text']" 
             },
             "type": "text",
-            "value": "healyou1994@gmail.com"
+            "value": "{code:login}"
         },
         {
             "web_element": {
@@ -14,7 +14,7 @@
                 "value": "input[type='password']" 
             },
             "type": "text",
-            "value": "test"
+            "value": "{code:psw}"
         },
         {
             "web_element": {

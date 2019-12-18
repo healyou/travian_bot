@@ -1,4 +1,4 @@
-from command.creator.factory import JsonCommandCreator
+from command.creator.factory import JsonCommandCreator, InsertValuesJsonCommandCreator
 from selenium.webdriver import Chrome
 from selenium.webdriver import *
 
@@ -6,12 +6,17 @@ from selenium.webdriver import *
 def create_browser():
     return Chrome(executable_path='install/chromedriver.exe')
 
-def open_travian(browser):
-    browser.get('https://ts3.travian.ru')
+def open_travian(browser, serverUrl: str):
+    browser.get(serverUrl)
 
-def login_to_account(browser):
-    creator = JsonCommandCreator(browser, 'files/travian/login.json')
+def login_to_account(browser, login: str, psw: str):
+    insertValuesDict = {
+		"login" : login,
+		"psw" : psw
+	}
+    creator = InsertValuesJsonCommandCreator(browser, 'files/travian/login.json', insertValuesDict)
     command = creator.createCommand()
+    # TODO - логин не проверяет правильность ввода данных
     command.execute()
 
 

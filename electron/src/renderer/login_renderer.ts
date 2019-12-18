@@ -8,6 +8,7 @@ import { RendererProcessActionTypes, MainProcessActionTypes } from '../process/A
 var ipc = require('electron').ipcRenderer;
 
 var authButton = document.getElementById('login');
+var serverUrlInput = <HTMLInputElement>document.getElementById('serverUrl');
 var emailInput = <HTMLInputElement>document.getElementById('email');
 var passwordInput = <HTMLInputElement>document.getElementById('password');
 var messageElement = <HTMLElement>document.getElementById('message');
@@ -24,7 +25,8 @@ function validateFormData(loginData: LoginData): Boolean {
 authButton.addEventListener('click', function(){
     var email = emailInput.value;
     var password = passwordInput.value;
-    var loginData: LoginData = new LoginData('url', email, password);
+    var serverUrl = serverUrlInput.value;
+    var loginData: LoginData = new LoginData(serverUrl, email, password);
 
     if (validateFormData(loginData)) {
         authButton.setAttribute('disabled', 'true');
