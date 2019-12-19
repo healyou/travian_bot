@@ -44,18 +44,69 @@ class IdSelector(AbstractSelector):
         return self._browser.find_element_by_id(self.id)
 
 
-class WaitByIdSelector(AbstractSelector):
+class AbstractWaitSelector(AbstractSelector):
     WAIT_SECONDS = 10
     
-    def __init__(self, browser, id):
-        super(WaitByIdSelector, self).__init__(browser)
-        self.id = id
+    def __init__(self, browser, message):
+        super(AbstractWaitSelector, self).__init__(browser)
+        self.message = message
+
+    def getWaitTimeoutSec(self):
+        return self.WAIT_SECONDS
+
+    # exmaple: return EC.presence_of_element_located((By.ID, self.id))
+    @abstractmethod
+    def waitCondition(self):
+        pass
 
     @abstractmethod
     def findElement(self):
-        return WebDriverWait(self._browser, self.WAIT_SECONDS).until(
-            EC.presence_of_element_located((By.ID, self.id))
+        return WebDriverWait(self._browser, self.getWaitTimeoutSec()).until(
+           method=self.waitCondition(),
+           message=self.message
         )
+
+
+class WaitByIdSelector(AbstractWaitSelector):
+    def __init__(self, browser, id):
+        super(WaitByIdSelector, self).__init__(browser, message='Component not found')
+        self.id = id
+
+    @abstractmethod
+    def waitCondition(self):
+        return EC.presence_of_element_located((By.ID, self.id))
+
+
+class WaitByCssSelector(AbstractWaitSelector):
+    def __init__(self, browser, css: str):
+        super(WaitByCssSelector, self).__init__(browser, message='Component not found')
+        self.css: str = css
+
+    @abstractmethod
+    def waitCondition(self):
+        return EC.presence_of_element_located((By.CSS_SELECTOR, self.css))
+
+
+class HasPresentElementSelector(AbstractSelector):
+    def __init__(self, browser, selector: AbstractSelector):
+        super(HasPresentElementSelector, self).__init__(browser)
+        self.selector: AbstractSelector = selector
+        self.elem = None
+
+    @abstractmethod
+    def findElement(self):
+        if self.elem is None:
+            return self.selector.findElement()
+        else:
+            return self.elem
+
+    def hasPresentElement(self)-> bool:
+        try:
+            self.elem = self.findElement()
+            return True
+        except Exception as error:
+            self.elem = None
+            return False
 
 
 # Поиск клетки для строительства внутрю здания деревни
