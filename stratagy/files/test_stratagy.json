@@ -1,0 +1,27 @@
+{
+    "code": "resource_village",
+    "name": "Ресурсная деревня",
+    "commands": [
+        {
+            "type": "sequence",
+            "build_type": "production",
+            "build_sub_type": "wood",
+            "command": "1",
+            "comment": "Строительство лесопилки"
+        },
+        {
+            "type": "interval",
+            "build_type": "production",
+            "build_sub_type": "wood",
+            "command": "1-4",
+            "comment": "Строительство лесопилки"
+        },
+        {
+            "type": "interval",
+            "build_type": "IndoorBuildingType",
+            "build_sub_type": "stock",
+            "command": "0-4",
+            "comment": "Строительство склада"
+        }
+    ]
+}
