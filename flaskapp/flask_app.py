@@ -8,7 +8,7 @@ from command.queue.buildthread import BuildThread
 from command.queue.dataclasses import *
 from command.queue.properties import QueueProperties
 from utils.context import Context
-from utils.travian_utils import create_browser, login_to_account, open_travian
+from utils.travian_utils import create_browser, login_to_account
 from utils.util import getVillagesInfo
 
 
@@ -44,8 +44,7 @@ class BotController(object):
             browser = create_browser()
             Context.browser = browser
 
-            open_travian(browser, server_url)
-            login_to_account(browser, login, psw)
+            login_to_account(browser, server_url, login, psw)
 
             Context.queueProperties = QueueProperties(browser)
             self.__login = True

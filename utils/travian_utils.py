@@ -1,50 +1,62 @@
 from command.creator.factory import JsonCommandCreator, InsertValuesJsonCommandCreator
+from typing import List
 from selenium.webdriver import Chrome
 from selenium.webdriver import *
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selector.selectors import HasPresentElementSelector, CssSelector, WaitByCssSelector
+from command.commands import AbstractCommand
+from selector.selectors import HasPresentElementSelector, CssSelector, WaitByCssSelector, HasPresentOneOfElements, AbstractSelector, WaitByClassNameSelector
 
 
 def create_browser():
     return Chrome(executable_path='install/chromedriver.exe')
 
-def open_travian(browser, serverUrl: str):
-    browser.get(serverUrl)
-    WebDriverWait(browser, 5).until(
-        method=EC.presence_of_element_located((By.CLASS_NAME, 'outerLoginBox')), 
-        message='Page not load exception'
-    )
-
-def login_to_account(browser, login: str, psw: str):
-    # TODO - объединить открытие страницы логина и сам ввод в одну команду для проверки ошибок
-    insertValuesDict = {
-		"login" : login,
-		"psw" : psw
-	}
-    creator = InsertValuesJsonCommandCreator(browser, 'files/travian/login.json', insertValuesDict)
-    command = creator.createCommand()
-    # TODO - логин не проверяет правильность ввода данных
-    command.execute()
-
-    # TODO - выделить в отдельное место проверку логина
-    hasPresentCaptcha = HasPresentElementSelector(browser, CssSelector(browser, 'th.captcha'))
-    if hasPresentCaptcha.hasPresentElement():
-        raise Exception('Present captcha for login')
-    else:
-        errorElemSelector = WaitByCssSelector(browser, 'div.error.LTR')
-        errorElement = errorElemSelector.findElement()
-        errorText = errorElement.text
-
+def login_to_account(browser, serverUrl: str, login: str, psw: str):
+    LoginToAccountCommand(browser, serverUrl, login, psw).execute()
 
 def open_resources(browser):
     creator = JsonCommandCreator(browser, 'files/travian/open_resources.json')
     command = creator.createCommand()
     command.execute()
 
-
 def open_village(browser):
     creator = JsonCommandCreator(browser, 'files/travian/open_village.json')
     command = creator.createCommand()
     command.execute()
+
+
+# TODO - возможно надо куда-то перенести
+class LoginToAccountCommand(AbstractCommand):
+    def __init__(self, browser, serverUrl: str, login: str, psw: str):
+        super(LoginToAccountCommand, self).__init__()
+        self.browser = browser
+        self.serverUrl = serverUrl;
+        self.login = login
+        self.psw = psw
+
+    def execute(self):
+        self.openTravianLoginPage()
+        self.enterCridentional()
+        self.validateLogin()  
+
+    def openTravianLoginPage(self):
+        self.browser.get(self.serverUrl)
+        pageLoadSelector = HasPresentElementSelector(self.browser, WaitByClassNameSelector(self.browser, 'outerLoginBox'))
+        if (not pageLoadSelector.hasPresentElement()):
+            raise Exception('Login page not load')
+
+    def enterCridentional(self):
+        insertValuesDict = {
+            "login" : self.login,
+            "psw" : self.psw
+        }
+        creator = InsertValuesJsonCommandCreator(self.browser, 'files/travian/login.json', insertValuesDict)
+        command = creator.createCommand()
+        command.execute()
+
+    def validateLogin(self):
+        selectors = [CssSelector(self.browser, 'th.captcha'), CssSelector(self.browser, 'div.error.LTR')] # type: List[AbstractSelector]
+        hasPresentErrorComponents = HasPresentOneOfElements(self.browser, selectors)
+        if (hasPresentErrorComponents.hasPresentElement()):
+            raise Exception('Login error')

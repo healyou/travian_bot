@@ -3,7 +3,7 @@ from gui.contract import IPresenter, IView
 from command.queue.buildthread import BuildThread
 from command.queue.properties import QueueProperties
 from utils.context import Context
-from utils.travian_utils import login_to_account, open_travian, create_browser
+from utils.travian_utils import login_to_account, create_browser
 from utils.util import getVillagesInfo
 from command.queue.dataclasses import *
 from flaskapp.flask_app import FlaskThread

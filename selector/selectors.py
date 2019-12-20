@@ -1,4 +1,5 @@
 import re
+from typing import List
 from abc import abstractmethod
 from exceptions.exceptions import BuildFieldException, BuildFieldExceptionType
 
@@ -61,6 +62,7 @@ class AbstractWaitSelector(AbstractSelector):
 
     @abstractmethod
     def findElement(self):
+        # TODO - оно ведь не возвращает компонент
         return WebDriverWait(self._browser, self.getWaitTimeoutSec()).until(
            method=self.waitCondition(),
            message=self.message
@@ -87,6 +89,17 @@ class WaitByCssSelector(AbstractWaitSelector):
         return EC.presence_of_element_located((By.CSS_SELECTOR, self.css))
 
 
+class WaitByClassNameSelector(AbstractWaitSelector):
+    def __init__(self, browser, className: str):
+        super(WaitByClassNameSelector, self).__init__(browser, message='Component not found')
+        self.className: str = className
+
+    @abstractmethod
+    def waitCondition(self):
+        return EC.presence_of_element_located((By.CLASS_NAME, self.className))
+
+
+# Проверка, есть ли компонент на страницу по указанному селектору
 class HasPresentElementSelector(AbstractSelector):
     def __init__(self, browser, selector: AbstractSelector):
         super(HasPresentElementSelector, self).__init__(browser)
@@ -107,6 +120,23 @@ class HasPresentElementSelector(AbstractSelector):
         except Exception as error:
             self.elem = None
             return False
+
+
+# Проверяет, есть один из указанных элементов на странице
+class HasPresentOneOfElements(object):
+    def __init__(self, browser, selectors: List[AbstractSelector]):
+        self._browser = browser
+        self.selectors = selectors
+
+    def hasPresentElement(self)-> bool:
+        for selector in self.selectors:
+            try:
+                selector.findElement()
+                return True
+            except:
+                pass
+
+        return False
 
 
 # Поиск клетки для строительства внутрю здания деревни

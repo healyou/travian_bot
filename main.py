@@ -3,10 +3,9 @@ import time
 from command.queue.buildthread import BuildThread
 from command.queue.properties import QueueProperties
 from utils.context import Context
-from utils.travian_utils import login_to_account, open_travian, create_browser
+from utils.travian_utils import login_to_account, create_browser
 
 browser = create_browser()
-browser = open_travian(browser)
 try:
     login_to_account(browser)
     
