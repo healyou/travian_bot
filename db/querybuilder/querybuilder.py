@@ -1,27 +1,61 @@
 from __future__ import annotations
-from .abstractquerybuilder import AbstractExpression, AbstractQueryBuilder
-from .expressions import EqExpression
+
 from abc import abstractmethod
 from typing import List
 
+from .abstractquerybuilder import (AbstractExpression, AbstractQueryBuilder,
+                                   MatchMode, Operation)
+from .expressions import Parentheses, SimpleExpression
+
 
 class QueryBuilder(object):
-    def __init__(self, query: str):
+    # т.к. нельзя добавить 2 конструктора, то вводим для args значение по умолчанию
+    def __init__(self, query: str, args: List[object] = []):
         self.__query: str = query
+        self.__args: List[object] = args
         self.__expression: AbstractExpression = None
+        self.__sortBy: str = None
+        self.__paging: str = None
+        self.__pagingStartIndex: int = None
+        self.__pagingCount: int = None
 
     @abstractmethod
     def getQuery(self) -> str:
+        sqlQuery = ''
+
+        # Основное выражение
         if (self.__hasExpression()):
-            return self.__query + ' ' + self.__expression.getSqlString()
+            sqlQuery += self.__query + ' where ' + self.__expression.getSqlString()
         else:
-            return self.__query
+            sqlQuery += self.__query
+
+        # Сортировка
+        if (self.__sortBy):
+            sqlQuery += self.__sortBy
+
+        # Пагинация
+        if (self.__paging):
+            sqlQuery += self.__paging
+
+        return sqlQuery
 
     @abstractmethod
     def getArguments(self) -> List[object]:
         arguments = []
+
+        # Начальные параметры
+        if (self.__args):
+            arguments.extend(self.__args)
+        
+        # Основное выражение
         if (self.__hasExpression()):
             arguments.extend(self.__expression.getArguments())
+        
+        # Пагинация
+        if (self.__paging):
+            arguments.append(self.__pagingStartIndex)
+            arguments.append(self.__pagingCount - 1)
+        
         return arguments
 
     def __hasExpression(self) -> bool:
@@ -29,14 +63,40 @@ class QueryBuilder(object):
 
     @abstractmethod
     def addPaging(self, startIndex: int, count: int) -> QueryBuilder:
-        pass
+        self.__pagingStartIndex = startIndex
+        self.__pagingCount = count
+        self.__paging = ' limit ?, ?'
+        return self
 
     @abstractmethod
-    def addSorting(self, sortOrder: SortOrder) -> QueryBuilder:
-        pass
+    def addSorting(self, fieldName: str, sortOrder: SortOrder) -> QueryBuilder:
+        # Поле не пустое
+        if (not fieldName):
+            raise Exception('Expected fieldName')
+
+        self.__initAndAddSortByCommaIfNeeded()
+        self.__sortBy += f'{fieldName} {sortOrder.value}'
+
+    def __initAndAddSortByCommaIfNeeded(self):
+        if (self.__sortBy):
+            self.__sortBy += ', '
+        else:
+            self.__sortBy = ' order by '
 
     def eq(self, fieldName: str, arg: object) -> QueryBuilder:
-        return self.__addExpressionIfHasValue(EqExpression(fieldName, arg))
+        return self.__addExpressionIfHasValue(SimpleExpression(fieldName, arg, Operation.EQ))
+
+    def parentheses(self, expression: AbstractExpression) -> QueryBuilder:
+        return self.__addExpressionIfHasValue(Parentheses(expression))
+
+    def neForString(self, fieldName: str, arg: str):
+        argument = MatchMode.EXACT.toMatchString(arg)
+        return self.__addExpressionIfHasValue(SimpleExpression(fieldName, argument, Operation.NE))
+    def neForValue(self, fieldName: str, arg: object) -> QueryBuilder:
+        # Для строки один случай %str%
+        # Для даты другой случай ? != trunc(date)
+        # Для остальных значений можно юзать простой exp  ? != value
+        return self.__addExpressionIfHasValue(SimpleExpression(fieldName, arg, Operation.NE))
 
     def __addExpressionIfHasValue(self, expression: AbstractExpression) -> QueryBuilder:
         # TODO - множество выражений

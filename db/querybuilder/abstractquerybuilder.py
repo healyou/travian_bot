@@ -25,7 +25,26 @@ class SortOrder(Enum):
     DESC = 'desc'
 
 
-# SQL выражение
+class MatchMode(Enum):
+    ANYWHERE = ('%', '%')
+    END = ('%', '')
+    EXACT = ('', '')
+    START = ('', '%')
+
+    def __init__(self, prePattern, postPattern):
+        self.__prePattern = ''
+        self.__postPattern = ''
+
+    # Преобразует шаблон, добавляя "%" в начало/конец шаблона.
+    # Выполняется удаление пробелов в начале и конце шаблона.
+    # Для <code>null</code> и пустых строк возвращается <code>null</code>.
+    # @param pattern поисковый шаблон
+    # @return шаблон для текущего режима, если шаблон равен <code>null</code>, то возвращает <code>null</code>
+    def toMatchString(self, pattern: str) -> str:
+        return self.__prePattern + pattern + self.__postPattern
+
+
+# SQL выражение (часть SQL запроса)
 class AbstractExpression(object):
     @abstractmethod
     def hasValue(self) -> bool:
