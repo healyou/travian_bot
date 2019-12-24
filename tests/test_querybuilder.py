@@ -1,5 +1,5 @@
 from db.querybuilder.querybuilder import QueryBuilder
-from db.querybuilder.abstractquerybuilder import SortOrder, Operation
+from db.querybuilder.abstractquerybuilder import SortOrder, Operation, MatchMode
 from db.querybuilder.expressions import Parentheses, SimpleExpression
 
 
@@ -133,3 +133,47 @@ def testNeForString():
 
     assert arguments == [neValue]
     assert query == f'{testQuery} where {neFieldName} != ?'
+
+def testLike():
+    testQuery = 'select field from table_name'
+    likeValue = 'ne_value'
+    likeFieldName = 'ne_field_name'
+
+    builder = QueryBuilder(testQuery)
+    builder.like(likeFieldName, likeValue, MatchMode.EXACT)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == [likeValue]
+    assert query == f'{testQuery} where {likeFieldName} like ?'
+
+def testIlike():
+    testQuery = 'select field from table_name'
+    iLikeValue = 'ne_value'
+    iLikeFieldName = 'ne_field_name'
+
+    builder = QueryBuilder(testQuery)
+    builder.iLike(iLikeFieldName, iLikeValue, MatchMode.EXACT)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == [iLikeValue]
+    assert query == f'{testQuery} where upper({iLikeFieldName}) like ?'
+
+def testBeetween():
+    testQuery = 'select field from table_name'
+    fromValue = 'from_value'
+    toValue = 'to_value'
+    beetweenFieldName = 'ne_field_name'
+    testArguments = [fromValue, toValue]
+
+    builder = QueryBuilder(testQuery)
+    builder.between(beetweenFieldName, fromValue, toValue)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == testArguments
+    assert query == f'{testQuery} where {beetweenFieldName} >= ? and {beetweenFieldName} <= ?'

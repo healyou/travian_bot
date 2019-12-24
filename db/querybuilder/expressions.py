@@ -45,6 +45,38 @@ class Parentheses(AbstractExpression):
         return self.__expressiong.getArguments()
         
 
+# Объединить гурппу выражений в логическую операцию
+class LogicalExpression(AbstractExpression):
+    def __init__(self, operation: Operation, expressions: List[AbstractExpression]):
+        if (not operation or not expressions):
+            raise Exception('Operation and expressions expected for LogicalExpression')
+
+        self.__sqlQuery: str = ''
+        self.__arguments: List[object] = []
+
+        for exp in expressions:
+            if (exp.hasValue()):
+                if (not self.__sqlQuery):
+                    self.__sqlQuery += exp.getSqlString()
+                else:
+                    self.__sqlQuery += ' ' + operation.value + ' ' + exp.getSqlString()
+                self.__arguments.extend(exp.getArguments())
+
+        # Проверка на наличие аргументов
+        self.__hasValue = not self.__arguments is False
+
+    @abstractmethod
+    def hasValue(self) -> bool:
+        return self.__hasValue
+
+    @abstractmethod
+    def getSqlString(self) -> str:
+        return self.__sqlQuery
+
+    @abstractmethod
+    def getArguments(self) -> List[object]:
+        return self.__arguments
+
 # TODO ne (Добавить условие поиска по текстовому полю на неравенство) - надо додобавить методы для даты и другого)
 # TODO ge (Добавить условие поиска >= по текстовому полю)
 # TODO le (Добавить условие поиска <= по текстовому полю)

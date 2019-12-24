@@ -5,7 +5,7 @@ from typing import List
 
 from .abstractquerybuilder import (AbstractExpression, AbstractQueryBuilder,
                                    MatchMode, Operation)
-from .expressions import Parentheses, SimpleExpression
+from .expressions import Parentheses, SimpleExpression, LogicalExpression
 
 
 class QueryBuilder(object):
@@ -97,6 +97,21 @@ class QueryBuilder(object):
         # Для даты другой случай ? != trunc(date)
         # Для остальных значений можно юзать простой exp  ? != value
         return self.__addExpressionIfHasValue(SimpleExpression(fieldName, arg, Operation.NE))
+
+    def like(self, fieldName: str, arg: str, matchMode: MatchMode) -> QueryBuilder:
+        argument = matchMode.toMatchString(arg)
+        return self.__addExpressionIfHasValue(SimpleExpression(fieldName, argument, Operation.LIKE))
+
+    def iLike(self, fieldName: str, arg: str, matchMode: MatchMode) -> QueryBuilder:
+        argument = matchMode.toMatchString(arg)
+        upperFieldName = f'upper({fieldName})'
+        return self.__addExpressionIfHasValue(SimpleExpression(upperFieldName, argument, Operation.LIKE))
+
+    def between(self, fieldName: str, fromValue: object, toValue: object) -> QueryBuilder:
+        ge = SimpleExpression(fieldName, fromValue, Operation.GE)
+        le = SimpleExpression(fieldName, toValue, Operation.LE)
+        andExp = LogicalExpression(Operation.AND, [ge, le])
+        return self.__addExpressionIfHasValue(andExp)
 
     def __addExpressionIfHasValue(self, expression: AbstractExpression) -> QueryBuilder:
         # TODO - множество выражений
