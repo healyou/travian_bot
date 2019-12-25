@@ -141,6 +141,23 @@ class InExpression(AbstractExpression):
         return self.__arguments
 
 
+# Отрицание выражения
+class NotExpression(AbstractExpression):
+    def __init__(self, expression: AbstractExpression):
+        self.__expression: AbstractExpression = expression
+
+    @abstractmethod
+    def hasValue(self) -> bool:
+        return self.__expression.hasValue()
+
+    @abstractmethod
+    def getSqlString(self) -> str:
+        return 'not ' + self.__expression.getSqlString()
+
+    @abstractmethod
+    def getArguments(self) -> List[object]:
+        return self.__expression.getArguments()
+
 
 # TODO ne (Добавить условие поиска по текстовому полю на неравенство) - надо додобавить методы для даты и другого)
 # TODO ge (Добавить условие поиска >= по текстовому полю)

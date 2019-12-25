@@ -217,3 +217,36 @@ def testInExp():
 
     assert arguments == testArguments
     assert query == f'{testQuery} where {inFieldName} in (?, ?, ?)'
+
+def testNotExp():
+    testQuery = 'select field from table_name'
+    eqValue = 'eq_value'
+    eqFieldName = 'eq_field_name'
+    testArguments = [eqValue]
+
+    builder = QueryBuilder(testQuery)
+    eqExp = SimpleExpression(eqFieldName, eqValue, Operation.EQ)
+    parantheses = Parentheses(eqExp)
+    builder.notExp(parantheses)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == testArguments
+    assert query == f'{testQuery} where not ({eqFieldName} = ?)'
+
+def testSimpleOperationForValueMethod():
+    testQuery = 'select field from table_name'
+    operValue = 'eq_value'
+    operFieldName = 'eq_field_name'
+    operation = Operation.NE
+    testArguments = [operValue]
+
+    builder = QueryBuilder(testQuery)
+    builder.simpleOperationForValue(operFieldName, operValue, operation)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == testArguments
+    assert query == f'{testQuery} where {operFieldName} != ?'

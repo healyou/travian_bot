@@ -6,7 +6,7 @@ from typing import List
 from .abstractquerybuilder import (AbstractExpression, AbstractQueryBuilder,
                                    MatchMode, Operation)
 from .expressions import (InExpression, LogicalExpression,
-                          NoArgumentsExpression, Parentheses, SimpleExpression)
+                          NoArgumentsExpression, Parentheses, SimpleExpression, NotExpression)
 
 
 class QueryBuilder(object):
@@ -90,14 +90,21 @@ class QueryBuilder(object):
     def parentheses(self, expression: AbstractExpression) -> QueryBuilder:
         return self.__addExpressionIfHasValue(Parentheses(expression))
 
+    # TODO - как быть с датами?
     def neForString(self, fieldName: str, arg: str):
         argument = MatchMode.EXACT.toMatchString(arg)
         return self.__addExpressionIfHasValue(SimpleExpression(fieldName, argument, Operation.NE))
+   
     def neForValue(self, fieldName: str, arg: object) -> QueryBuilder:
         # Для строки один случай %str%
         # Для даты другой случай ? != trunc(date)
         # Для остальных значений можно юзать простой exp  ? != value
         return self.__addExpressionIfHasValue(SimpleExpression(fieldName, arg, Operation.NE))
+
+    # Добавить простое условие поиска по переданному значению.
+    def simpleOperationForValue(self, fieldName: str, arg: object, operation: Operation) -> QueryBuilder:
+        exp = SimpleExpression(fieldName, arg, operation)
+        return self.__addExpressionIfHasValue(exp)
 
     def like(self, fieldName: str, arg: str, matchMode: MatchMode) -> QueryBuilder:
         argument = matchMode.toMatchString(arg)
@@ -124,6 +131,10 @@ class QueryBuilder(object):
 
     def inExp(self, fieldName: str, args: List[object]) -> QueryBuilder:
         exp = InExpression(fieldName, args)
+        return self.__addExpressionIfHasValue(exp)
+
+    def notExp(self, expression: AbstractExpression) -> QueryBuilder:
+        exp = NotExpression(expression)
         return self.__addExpressionIfHasValue(exp)
 
     def __addExpressionIfHasValue(self, expression: AbstractExpression) -> QueryBuilder:
