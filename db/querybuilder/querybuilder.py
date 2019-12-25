@@ -5,7 +5,8 @@ from typing import List
 
 from .abstractquerybuilder import (AbstractExpression, AbstractQueryBuilder,
                                    MatchMode, Operation)
-from .expressions import Parentheses, SimpleExpression, LogicalExpression
+from .expressions import (InExpression, LogicalExpression,
+                          NoArgumentsExpression, Parentheses, SimpleExpression)
 
 
 class QueryBuilder(object):
@@ -112,6 +113,18 @@ class QueryBuilder(object):
         le = SimpleExpression(fieldName, toValue, Operation.LE)
         andExp = LogicalExpression(Operation.AND, [ge, le])
         return self.__addExpressionIfHasValue(andExp)
+
+    def isNull(self, fieldName: str) -> QueryBuilder:
+        exp = NoArgumentsExpression(fieldName, Operation.IS_NULL)
+        return self.__addExpressionIfHasValue(exp)
+
+    def isNotNull(self, fieldName: str) -> QueryBuilder:
+        exp = NoArgumentsExpression(fieldName, Operation.IS_NOT_NULL)
+        return self.__addExpressionIfHasValue(exp)
+
+    def inExp(self, fieldName: str, args: List[object]) -> QueryBuilder:
+        exp = InExpression(fieldName, args)
+        return self.__addExpressionIfHasValue(exp)
 
     def __addExpressionIfHasValue(self, expression: AbstractExpression) -> QueryBuilder:
         # TODO - множество выражений

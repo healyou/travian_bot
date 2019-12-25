@@ -177,3 +177,43 @@ def testBeetween():
 
     assert arguments == testArguments
     assert query == f'{testQuery} where {beetweenFieldName} >= ? and {beetweenFieldName} <= ?'
+
+def testIsNull():
+    testQuery = 'select field from table_name'
+    nullFieldName = 'null_field_name'
+
+    builder = QueryBuilder(testQuery)
+    builder.isNull(nullFieldName)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == []
+    assert query == f'{testQuery} where {nullFieldName} is null'
+
+def testIsNotNull():
+    testQuery = 'select field from table_name'
+    notNullFieldName = 'null_field_name'
+
+    builder = QueryBuilder(testQuery)
+    builder.isNotNull(notNullFieldName)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == []
+    assert query == f'{testQuery} where {notNullFieldName} is not null'
+
+def testInExp():
+    testQuery = 'select field from table_name'
+    inFieldName = 'in_field_name'
+    testArguments = ['arg1', 'arg2', 'arg3']
+
+    builder = QueryBuilder(testQuery)
+    builder.inExp(inFieldName, testArguments)
+    
+    query = builder.getQuery()
+    arguments = builder.getArguments()
+
+    assert arguments == testArguments
+    assert query == f'{testQuery} where {inFieldName} in (?, ?, ?)'
