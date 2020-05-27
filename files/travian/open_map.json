@@ -1,0 +1,12 @@
+{
+    "commands": [
+        {
+            "web_element": {
+                "type": "id",
+                "value": "n3" 
+            },
+            "type": "click",
+            "value": ""
+        }
+    ]
+}
